@@ -53,6 +53,14 @@
  .gr td{background:#eaf6ef;font-weight:600}
  .subr td{background:#eef1f4;font-weight:700;color:#143a66}
  @media print{header,.ctl,.tabs,.noprint,#pane-e,#pane-d,#pane-m{display:none !important}.wrap{box-shadow:none;min-height:auto !important;max-width:100% !important}body{background:#fff;padding:0 !important}.body{padding:0 8px !important}.quote{padding:8px 10px !important;border:none !important}.lhead{padding-bottom:8px !important}.lhead .lh-info{font-size:11px !important;line-height:1.4 !important}.kg{margin:7px 0 5px !important;font-size:13px !important}.intro{margin-bottom:7px !important;font-size:12px !important}.bgtt{font-size:17px !important;margin-top:3px !important}.bgdv{margin:1px 0 7px !important}.qtbl td,.qtbl th{padding:5px 9px !important;font-size:12px !important}.qnote{margin-top:6px !important;line-height:1.4 !important;font-size:10.5px !important}}
+
+ #te thead th{position:relative;padding:5px 6px}
+ #te .hinp{width:calc(100% - 16px);box-sizing:border-box;font-weight:600;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);border-radius:4px;text-align:center;font-size:12px;padding:3px 4px}
+ #te .ginp{width:100%;box-sizing:border-box;border:1px solid #e0e9f1;border-radius:5px;padding:5px 7px;font-size:13px;background:#fff}
+ #te .ginp.num{text-align:right;font-weight:600;color:#c2700d}
+ #te .xcol{position:absolute;top:1px;right:3px;color:#ffd9a8;cursor:pointer;font-size:14px;font-weight:700}
+ #te .xrow{color:#c0392b;cursor:pointer;font-size:14px}
+ #te td{padding:5px 6px}
 </style>
 </head>
 <body>
@@ -79,8 +87,12 @@
     </div>
 
     <div id="pane-e">
-      <p class="hint">Cột <b>Giá tự tính</b> = theo công thức (giá dầu × mốc %). Gõ số vào cột <b>Giá công bố</b> để chỉnh tay (vd làm tròn đẹp / giá đàm phán); ô đã sửa tô cam. Báo giá khách sẽ dùng <b>Giá công bố</b>.</p>
-      <button class="btn orange" onclick="resetAll()">↺ Khôi phục toàn bộ về giá tự tính</button>
+      <p class="hint">Bảng tự do kiểu Excel: sửa <b>tên cột</b>, sửa <b>ô</b>, <b>thêm/xóa dòng & cột</b>. Tab <b>Báo giá khách</b> (chế độ GIÁ TAY) sẽ in đúng bảng này. Bấm <b>Nạp giá định mức</b> để điền sẵn 4 tuyến chuẩn rồi chỉnh.</p>
+      <div style="margin-bottom:10px">
+        <button class="btn orange" onclick="addRow()">+ Thêm dòng</button>
+        <button class="btn orange" onclick="addCol()">+ Thêm cột</button>
+        <button class="btn" onclick="loadDinhMuc()">↻ Nạp giá định mức</button>
+      </div>
       <table id="te"></table>
     </div>
 
@@ -101,7 +113,7 @@
         <p class="intro"><b>Công ty Cổ Phần TNP Logistic</b> xin trân trọng báo giá Cước dịch vụ vận chuyển hàng hóa, bưu phẩm, bưu kiện bằng xe ô tô tải theo tuyến cố định từ các tỉnh thành, chi tiết như sau:</p>
         <div class="bgtt">BẢNG BÁO GIÁ VẬN CHUYỂN</div>
         <div class="bgdv">(Đơn vị tính: Vnđ/chuyến)</div>
-        <table><thead><tr><th class="l">Tuyến vận chuyển</th><th class="l">Loại xe</th><th>Đơn giá 1 chiều</th><th>Đơn giá khứ hồi</th></tr></thead><tbody id="qbody"></tbody></table>
+        <table class="qtbl" id="qtable"></table>
         <div class="qnote">
           • Đơn giá chưa bao gồm chi phí: VAT, bốc xếp lên xuống hàng, phí tăng bo nếu cấm đường.<br>
           • Mùa hàng hóa cao điểm, đơn giá tăng không vượt quá 10%.<br>
@@ -128,7 +140,7 @@ const ROUTES = [
 ];
 const GIA_URE=13200, VAT=0.08, GIAM_KHUHOI=0.05;
 /* =========================================================================== */
-let MANUAL = ROUTES.map(()=>null);   /* giá gõ tay; null = dùng giá tự tính */
+let GRID=null;
 let quoteMode = "dinhmuc";  /* báo giá theo: dinhmuc | tay */
 function inBaoGia(mode){ quoteMode=mode; render(); setTimeout(function(){ window.print(); },60); }
 
@@ -136,35 +148,42 @@ const f = n => Math.round(n).toLocaleString("vi-VN");
 const cpDau=(r,d)=>r.km*r.dau/100*d, cpUre=r=>r.km*r.ure/100*GIA_URE, cpBd=r=>r.km*r.baoduong;
 const cost=(r,d)=>cpDau(r,d)+cpUre(r)+r.luong+cpBd(r)+r.vetc;
 const giaTu=(r,d,m)=>Math.ceil(cost(r,d)/m/100000)*100000;
-const pub=(i,d,m)=> MANUAL[i]!=null ? MANUAL[i] : giaTu(ROUTES[i],d,m);
-const pubKH=(i,d,m)=>Math.ceil(pub(i,d,m)*2*(1-GIAM_KHUHOI)/100000)*100000;
+const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+function defaultGrid(d,m){return {cols:["Tuyến vận chuyển","Loại xe","Đơn giá 1 chiều","Đơn giá khứ hồi"],
+  rows:ROUTES.map(r=>{const g=giaTu(r,d,m),kh=Math.ceil(g*2*(1-GIAM_KHUHOI)/100000)*100000;return [r.tuyen,r.xe,f(g),f(kh)];})};}
+function _dm(){return [parseFloat(document.getElementById("ds").value)||0, parseFloat(document.getElementById("rt").value)];}
+function loadDinhMuc(){const[d,m]=_dm();GRID=defaultGrid(d,m);render();}
+function addRow(){const[d,m]=_dm();if(!GRID)GRID=defaultGrid(d,m);GRID.rows.push(GRID.cols.map(()=>""));render();}
+function addCol(){const[d,m]=_dm();if(!GRID)GRID=defaultGrid(d,m);GRID.cols.push("Cột mới");GRID.rows.forEach(r=>r.push(""));render();}
+function delRow(i){GRID.rows.splice(i,1);render();}
+function delCol(j){if(GRID.cols.length<=1)return;GRID.cols.splice(j,1);GRID.rows.forEach(r=>r.splice(j,1));render();}
+function editHeader(j,v){GRID.cols[j]=v;}
+function editCell(i,j,v){GRID.rows[i][j]=v;}
 const colH=h=>`<thead><tr><th class="l">${h}</th>${ROUTES.map(r=>`<th>${r.xe.replace("Xe ","")}·${r.tuyen.includes("Hà Nội")?"HN":"ĐN"}</th>`).join("")}</tr></thead>`;
 const rowFn=(lbl,fn,cls)=>`<tr class="${cls||""}"><td class="l">${lbl}</td>${ROUTES.map(fn).join("")}</tr>`;
 
-function onEdit(i,val){ const n=parseFloat(String(val).replace(/[^0-9]/g,"")); MANUAL[i]=isNaN(n)||n<=0?null:n; render(); }
-function resetAll(){ MANUAL=ROUTES.map(()=>null); render(); }
 
 function render(){
  const d=parseFloat(document.getElementById("ds").value)||0, m=parseFloat(document.getElementById("rt").value);
 
  /* Chỉnh giá tay */
+ if(!GRID) GRID=defaultGrid(d,m);
  document.getElementById("te").innerHTML =
-  '<thead><tr><th class="l">Tuyến</th><th class="l">Loại xe</th><th>Giá tự tính</th><th>Giá công bố (gõ tay)</th><th>Khứ hồi</th></tr></thead><tbody>'+
-  ROUTES.map((r,i)=>{
-    const tu=giaTu(r,d,m), edited=MANUAL[i]!=null;
-    return `<tr><td class="l">${r.tuyen}</td><td class="l">${r.xe}</td>
-      <td>${f(tu)}</td>
-      <td><input class="pinput ${edited?'edited':''}" value="${f(pub(i,d,m))}" onchange="onEdit(${i},this.value)"></td>
-      <td>${f(pubKH(i,d,m))}</td></tr>`;
-  }).join("")+'</tbody>';
+   '<thead><tr>'+GRID.cols.map((c,j)=>`<th><input class="hinp" value="${esc(c)}" onchange="editHeader(${j},this.value)"><span class="xcol" onclick="delCol(${j})" title="Xoa cot">×</span></th>`).join("")+'<th style="width:30px"></th></tr></thead><tbody>'+
+   GRID.rows.map((row,i)=>'<tr>'+row.map((v,j)=>`<td><input class="ginp${j>1?' num':''}" value="${esc(v)}" onchange="editCell(${i},${j},this.value)"></td>`).join("")+`<td><span class="xrow" onclick="delRow(${i})" title="Xoa dong">🗑</span></td></tr>`).join("")+'</tbody>';
 
  /* Báo giá khách */
- const _qp = i => quoteMode==='tay' ? pub(i,d,m) : giaTu(ROUTES[i],d,m);
- const _qkh = i => Math.ceil(_qp(i)*2*(1-GIAM_KHUHOI)/100000)*100000;
- document.getElementById("qbody").innerHTML = ROUTES.map((r,i)=>
-   `<tr><td class="l">${r.tuyen}</td><td class="l">${r.xe}</td>
-    <td style="font-weight:800;color:#143a66">${f(_qp(i))}</td><td>${f(_qkh(i))}</td></tr>`).join("");
- var _ql=document.getElementById("quoteModeLabel"); if(_ql) _ql.textContent = (quoteMode==='tay' ? "● Đang theo GIÁ TAY (đã chỉnh)" : "● Đang theo GIÁ ĐỊNH MỨC (tự tính)");
+ if(quoteMode==='tay'){
+   if(!GRID) GRID=defaultGrid(d,m);
+   document.getElementById("qtable").innerHTML =
+     '<thead><tr>'+GRID.cols.map((c,j)=>`<th class="${j<2?'l':''}">${esc(c)}</th>`).join("")+'</tr></thead><tbody>'+
+     GRID.rows.map(row=>'<tr>'+row.map((v,j)=>`<td class="${j<2?'l':''}"${j===2?' style="font-weight:800;color:#143a66"':''}>${esc(v)}</td>`).join("")+'</tr>').join("")+'</tbody>';
+ } else {
+   document.getElementById("qtable").innerHTML =
+     '<thead><tr><th class="l">Tuyến vận chuyển</th><th class="l">Loại xe</th><th>Đơn giá 1 chiều</th><th>Đơn giá khứ hồi</th></tr></thead><tbody>'+
+     ROUTES.map(r=>{const g=giaTu(r,d,m),kh=Math.ceil(g*2*(1-GIAM_KHUHOI)/100000)*100000;return `<tr><td class="l">${r.tuyen}</td><td class="l">${r.xe}</td><td style="font-weight:800;color:#143a66">${f(g)}</td><td>${f(kh)}</td></tr>`;}).join("")+'</tbody>';
+ }
+ var _ql=document.getElementById("quoteModeLabel"); if(_ql) _ql.textContent = (quoteMode==='tay' ? "● Đang theo BẢNG GIÁ TAY" : "● Đang theo GIÁ ĐỊNH MỨC (tự tính)");
 
  /* Diễn giải */
  var H2='<thead><tr><th class="l">Bước tính</th><th class="l">Công thức</th>'+ROUTES.map(r=>`<th>${r.xe.replace("Xe ","")}·${r.tuyen.includes("Hà Nội")?"HN":"ĐN"}</th>`).join("")+'</tr></thead>';
