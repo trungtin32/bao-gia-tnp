@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bảng giá cước vận tải — TNP International Logistics</title>
+<title>Bảng giá (chỉnh tay) — TNP International Logistics</title>
 <style>
  :root{--blue:#0E84BC;--blue2:#1CA9E0;--orange:#F7941D;--ink:#143a66;--bg:#eef4f9;--muted:#6b7280;--line:#e0e9f1;--green:#16a34a}
  *{box-sizing:border-box;margin:0;padding:0}
  body{font-family:-apple-system,"Segoe UI",Arial,sans-serif;background:var(--bg);color:#1f2937;padding:0 0 50px}
  .wrap{max-width:1040px;margin:0 auto;background:#fff;min-height:100vh}
- header{background:linear-gradient(135deg,var(--blue2),var(--blue));padding:22px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+ header{background:linear-gradient(135deg,var(--blue2),var(--blue));padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
  .logo{display:flex;align-items:center;gap:13px}
  .logo .tnp{font-size:30px;font-weight:800;color:var(--orange);line-height:1}
- .logo .sub{border-left:2px solid rgba(255,255,255,.4);padding-left:13px}
  .logo .sub b{font-size:16px;color:#fff;display:block}
  .logo .sub span{font-size:12px;color:#d4ecf9}
- .up{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;font-size:12px;padding:7px 13px;border-radius:999px}
+ .logo .sub{border-left:2px solid rgba(255,255,255,.4);padding-left:13px}
+ .flag{background:#fff3e2;color:#c2700d;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;border:1px solid #f3c88f}
  .body{padding:0 22px 24px}
  .ctl{background:#fff;border-radius:13px;border-top:3px solid var(--orange);box-shadow:0 2px 12px rgba(14,132,188,.12);padding:15px 17px;margin-top:-16px;position:relative;display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end}
  .ctl .lab{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
@@ -24,95 +24,69 @@
  .tabs{display:flex;gap:8px;margin:18px 0 16px;flex-wrap:wrap}
  .tb{padding:9px 17px;font-size:13px;font-weight:700;color:var(--blue);cursor:pointer;border:1px solid #bfe0f2;background:#fff;border-radius:999px}
  .tb.on{background:var(--orange);color:#fff;border-color:var(--orange)}
- .tb.cust{border-color:var(--orange);color:var(--orange)}
- .tb.cust.on{background:var(--orange);color:#fff}
- h3.sec{font-size:13px;font-weight:700;color:var(--blue);margin:18px 0 9px}
- .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px}
- .card{background:#fff;border-radius:13px;overflow:hidden;box-shadow:0 1px 8px rgba(14,132,188,.09)}
- .card .tp{padding:11px 14px}
- .card .rt{font-size:14px;font-weight:700;color:var(--ink)}
- .card .tk{font-size:12px;font-weight:700}
- .card .bd{padding:14px}
- .card .pr{font-size:1.6rem;font-weight:800;letter-spacing:-.5px}
- .card .pr small{font-size:.8rem;color:#9ca3af;font-weight:600}
- .card .vt{font-size:12px;color:var(--green);margin-top:4px}
- .card .rtp{font-size:12px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px dashed #e5e7eb}
+ h3.sec{font-size:13px;font-weight:700;color:var(--blue);margin:4px 0 9px}
  table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:11px;overflow:hidden;box-shadow:0 1px 5px rgba(14,132,188,.08);margin-bottom:6px}
  td,th{padding:9px 11px;text-align:right;border-bottom:1px solid #eef4f9}
  td.l,th.l{text-align:left}
  thead th{background:var(--blue);color:#fff;font-weight:600;font-size:12px}
  .hlr td{background:#e3f3fc;font-weight:700;color:var(--blue)}
  .secr td{background:#fff3e2;font-weight:700;color:#c2700d}
- .foot{font-size:12px;color:var(--muted);margin-top:18px;border-top:1px solid var(--line);padding-top:14px;line-height:1.7}
- .foot b{color:var(--ink)}
- /* Báo giá khách */
- .quote{border:1px solid var(--line);border-radius:12px;padding:22px 24px}
- .qhead{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;border-bottom:2px solid var(--orange);padding-bottom:14px;margin-bottom:16px}
- .qhead .ttl{font-size:20px;font-weight:800;color:var(--ink)}
- .qhead .meta{font-size:12px;color:var(--muted);margin-top:4px}
- .qhead .co{text-align:right}
- .qhead .co .n{font-size:16px;font-weight:800;color:var(--blue)}
- .qhead .co .n span{color:var(--orange)}
- .qhead .co .c{font-size:12px;color:var(--muted);margin-top:3px}
- .qtbl th{background:var(--ink)}
- .qtbl td{font-size:14px;padding:11px 12px}
- .qtbl .big{font-weight:800;color:var(--ink)}
- .qnote{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.7}
- .btn{display:inline-flex;align-items:center;gap:7px;background:var(--orange);color:#fff;border:none;font-size:13px;font-weight:700;padding:10px 16px;border-radius:9px;cursor:pointer;margin-bottom:14px}
-
- .lhead{display:flex;gap:16px;align-items:center;border-bottom:2px solid #143a66;padding-bottom:14px}
+ .pinput{width:130px;text-align:right;font-size:13px;font-weight:700;color:#c2700d;border:1.5px solid #f3c88f;border-radius:7px;padding:6px 8px;background:#fffdf8}
+ .edited{background:#fff3e2 !important}
+ .btn{display:inline-flex;align-items:center;gap:7px;background:#fff;color:var(--blue);border:1px solid #bfe0f2;font-size:13px;font-weight:700;padding:9px 15px;border-radius:9px;cursor:pointer;margin:4px 8px 12px 0}
+ .btn.orange{background:var(--orange);color:#fff;border-color:var(--orange)}
+ .hint{font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.6}
+ /* letterhead báo giá */
+ .lhead{display:flex;gap:16px;align-items:center;border-bottom:2px solid var(--ink);padding-bottom:14px}
  .lhead .lh-logo{text-align:center;flex-shrink:0}
  .lhead .lh-info{font-size:12px;color:#374151;line-height:1.55}
- .lhead .lh-info .co{font-size:15px;font-weight:800;color:#143a66;margin-bottom:2px}
+ .lhead .lh-info .co{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:2px}
  .kg{text-align:center;font-style:italic;font-size:14px;margin:14px 0 10px}
  .intro{font-size:13px;color:#374151;line-height:1.7;margin-bottom:12px}
- .bgtt{text-align:center;font-size:19px;font-weight:800;color:#143a66;margin-top:6px}
- .bgdv{text-align:center;font-size:12px;font-style:italic;color:#6b7280;margin:2px 0 14px}
+ .bgtt{text-align:center;font-size:19px;font-weight:800;color:var(--ink);margin-top:6px}
+ .bgdv{text-align:center;font-size:12px;font-style:italic;color:var(--muted);margin:2px 0 14px}
+ .qnote{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.8}
  @page{margin:14mm}
 
  .secrow td{background:#d6e9f7;color:#0E84BC;font-weight:700;font-size:12px}
  .ff{color:#9099a3;font-style:italic;font-size:11px}
  .gr td{background:#eaf6ef;font-weight:600}
  .subr td{background:#eef1f4;font-weight:700;color:#143a66}
- @media print{
-   body{background:#fff}.wrap{box-shadow:none}
-   header,.tabs,.noprint,#pane-g,#pane-d,#pane-m{display:none !important}
-   #pane-q{display:block !important}
-   .quote{border:none;padding:0}
- }
- @media(max-width:560px){.card .pr{font-size:1.35rem}}
+ @media print{header,.ctl,.tabs,.noprint,#pane-e,#pane-d,#pane-m{display:none !important}.wrap{box-shadow:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="logo">
-      <svg width="46" height="46" viewBox="0 0 120 120" style="flex-shrink:0" aria-hidden="true"><g fill="#ffffff"><rect x="44" y="12" width="32" height="32" rx="6" transform="rotate(45 60 28)"/><rect x="12" y="44" width="32" height="32" rx="6" transform="rotate(45 28 60)"/><rect x="76" y="44" width="32" height="32" rx="6" transform="rotate(45 92 60)"/><rect x="44" y="76" width="32" height="32" rx="6" transform="rotate(45 60 92)"/></g></svg><div class="tnp">TNP</div>
-      <div class="sub"><b>International Logistics</b><span>Bảng giá cước vận tải — công bố chính thức</span></div>
-    </div>
-    <div class="up" id="up">—</div>
+    <div class="logo"><svg width="46" height="46" viewBox="0 0 120 120" style="flex-shrink:0" aria-hidden="true"><g fill="#ffffff"><rect x="44" y="12" width="32" height="32" rx="6" transform="rotate(45 60 28)"/><rect x="12" y="44" width="32" height="32" rx="6" transform="rotate(45 28 60)"/><rect x="76" y="44" width="32" height="32" rx="6" transform="rotate(45 92 60)"/><rect x="44" y="76" width="32" height="32" rx="6" transform="rotate(45 60 92)"/></g></svg><div class="tnp">TNP</div><div class="sub"><b>International Logistics</b><span>Bảng giá — phiên bản chỉnh tay (nội bộ)</span></div></div>
+    <div class="flag">⚙ Bản chỉnh tay</div>
   </header>
 
   <div class="body">
-    <div class="ctl noprint">
-      <div><div class="lab">Giá dầu Diesel</div><input id="ds" type="number" value="22290" step="10" style="width:155px"><span class="u">đ/lít</span></div>
+    <div class="ctl">
+      <div><div class="lab">Giá dầu Diesel</div><input id="ds" type="number" value="22290" step="10" style="width:150px"><span class="u">đ/lít</span></div>
       <div><div class="lab">Giá bán theo % CP/DT</div>
-        <select id="rt" style="width:180px">
+        <select id="rt" style="width:175px">
           <option value="0.65">65% CP/DT</option><option value="0.70" selected>70% CP/DT</option>
-          <option value="0.75">75% CP/DT</option><option value="0.80">80% CP/DT</option>
-        </select></div>
+          <option value="0.75">75% CP/DT</option><option value="0.80">80% CP/DT</option></select></div>
     </div>
 
     <div class="tabs">
-      <button class="tb cust on" data-p="q">Báo giá khách</button>
-      <button class="tb" data-p="g">Bảng giá (nội bộ)</button>
+      <button class="tb on" data-p="e">Chỉnh giá tay</button>
+      <button class="tb" data-p="q">Báo giá khách</button>
       <button class="tb" data-p="d">Diễn giải</button>
       <button class="tb" data-p="m">Định mức</button>
     </div>
 
-    <div id="pane-q">
-      <button class="btn noprint" onclick="window.print()">🖨 In / Lưu PDF báo giá</button>
-      <div class="quote">
+    <div id="pane-e">
+      <p class="hint">Cột <b>Giá tự tính</b> = theo công thức (giá dầu × mốc %). Gõ số vào cột <b>Giá công bố</b> để chỉnh tay (vd làm tròn đẹp / giá đàm phán); ô đã sửa tô cam. Báo giá khách sẽ dùng <b>Giá công bố</b>.</p>
+      <button class="btn orange" onclick="resetAll()">↺ Khôi phục toàn bộ về giá tự tính</button>
+      <table id="te"></table>
+    </div>
+
+    <div id="pane-q" style="display:none">
+      <div class="noprint" style="margin-bottom:12px"><button class="btn" onclick="inBaoGia('tay')">🖨 In báo giá — GIÁ TAY</button><button class="btn" onclick="inBaoGia('dinhmuc')">🖨 In báo giá — ĐỊNH MỨC</button><span id="quoteModeLabel" style="font-size:12px;color:#6b7280;margin-left:6px"></span></div>
+      <div style="border:1px solid var(--line);border-radius:12px;padding:22px 24px">
         <div class="lhead">
           <div class="lh-logo" style="display:flex;align-items:center;gap:9px"><svg width="46" height="46" viewBox="0 0 120 120" style="flex-shrink:0" aria-hidden="true"><g fill="#1CA9E0"><rect x="44" y="12" width="32" height="32" rx="6" transform="rotate(45 60 28)"/><rect x="12" y="44" width="32" height="32" rx="6" transform="rotate(45 28 60)"/><rect x="76" y="44" width="32" height="32" rx="6" transform="rotate(45 92 60)"/><rect x="44" y="76" width="32" height="32" rx="6" transform="rotate(45 60 92)"/></g></svg><div style="text-align:left"><div style="font-size:30px;font-weight:800;color:#F7941D;line-height:1;letter-spacing:1px">TNP</div><div style="font-size:10px;font-weight:700;color:#1CA9E0;letter-spacing:.3px;border-top:1.5px solid #1CA9E0;padding-top:2px;margin-top:3px">International Logistics</div></div></div>
           <div class="lh-info">
@@ -128,94 +102,72 @@
         <p class="intro"><b>Công ty Cổ Phần TNP Logistic</b> xin trân trọng báo giá Cước dịch vụ vận chuyển hàng hóa, bưu phẩm, bưu kiện bằng xe ô tô tải theo tuyến cố định từ các tỉnh thành, chi tiết như sau:</p>
         <div class="bgtt">BẢNG BÁO GIÁ VẬN CHUYỂN</div>
         <div class="bgdv">(Đơn vị tính: Vnđ/chuyến)</div>
-        <table class="qtbl">
-          <thead><tr><th class="l">Tuyến vận chuyển</th><th class="l">Loại xe</th><th>Đơn giá 1 chiều</th><th>Đơn giá khứ hồi</th></tr></thead>
-          <tbody id="qbody"></tbody>
-        </table>
+        <table><thead><tr><th class="l">Tuyến vận chuyển</th><th class="l">Loại xe</th><th>Đơn giá 1 chiều</th><th>Đơn giá khứ hồi</th></tr></thead><tbody id="qbody"></tbody></table>
         <div class="qnote">
           • Đơn giá chưa bao gồm chi phí: VAT, bốc xếp lên xuống hàng, phí tăng bo nếu cấm đường.<br>
           • Mùa hàng hóa cao điểm, đơn giá tăng không vượt quá 10%.<br>
           • Đối với các điểm giao thuộc huyện/xã, đơn giá vận chuyển sẽ được phụ thu thêm 20% so với đơn giá tuyến tiêu chuẩn.<br>
           • Thời hạn thanh toán: theo thỏa thuận.
         </div>
-        <p style="font-size:13px;color:#143a66;font-weight:700;margin-top:16px">Rất mong được hợp tác cùng Quý khách. Trân trọng!</p>
+        <p style="font-size:13px;color:var(--ink);font-weight:700;margin-top:16px">Rất mong được hợp tác cùng Quý khách. Trân trọng!</p>
       </div>
     </div>
 
-    <div id="pane-g" style="display:none">
-      <div class="cards" id="cards"></div>
-      <h3 class="sec">Giá bán theo % CP/DT (chưa VAT)</h3>
-      <table id="t1"></table>
-    </div>
-    <div id="pane-d" style="display:none">
-      <h3 class="sec">Diễn giải cách tính (đ/chuyến 1 chiều)</h3>
-      <table id="t2"></table>
-    </div>
-    <div id="pane-m" style="display:none">
-      <h3 class="sec">Định mức đầu vào</h3>
-      <table id="t3"></table>
-    </div>
-
-    
+    <div id="pane-d" style="display:none"><h3 class="sec">Diễn giải cách tính (đ/chuyến 1 chiều)</h3><table id="t2"></table></div>
+    <div id="pane-m" style="display:none"><h3 class="sec">Định mức đầu vào</h3><table id="t3"></table></div>
   </div>
 </div>
 
 <script>
-/* =================== DỮ LIỆU CHẶNG — THÊM TUYẾN MỚI Ở ĐÂY ===================
-   Mỗi tuyến là 1 dòng. Sao chép 1 dòng rồi sửa: tên tuyến, loại xe, màu,
-   km, tiêu hao dầu (L/100km), ure (L/100km), lương khoán (đ), bảo dưỡng (đ/km),
-   VETC (đ, chưa VAT). Cards, các bảng và báo giá khách tự sinh.               */
+/* =================== DỮ LIỆU CHẶNG — THÊM TUYẾN MỚI Ở ĐÂY =================== */
 const BLUE="#0E84BC", ORANGE="#F7941D";
 const ROUTES = [
- {tuyen:"HCM ⇄ Hà Nội",  xe:"Xe 8T",  mau:BLUE,   bg:"#e3f3fc", km:1710, dau:20, ure:0.9, luong:4000000, baoduong:300, vetc:2412932},
- {tuyen:"HCM ⇄ Đà Nẵng", xe:"Xe 8T",  mau:BLUE,   bg:"#e3f3fc", km:960,  dau:20, ure:0.9, luong:2000000, baoduong:300, vetc:1713769},
- {tuyen:"HCM ⇄ Hà Nội",  xe:"Xe 15T", mau:ORANGE, bg:"#fff3e2", km:1710, dau:23, ure:1.2, luong:4250000, baoduong:350, vetc:3509589},
- {tuyen:"HCM ⇄ Đà Nẵng", xe:"Xe 15T", mau:ORANGE, bg:"#fff3e2", km:960,  dau:23, ure:1.2, luong:2125000, baoduong:350, vetc:2483392},
+ {tuyen:"HCM ⇄ Hà Nội",  xe:"Xe 8T",  km:1710, dau:20, ure:0.9, luong:4000000, baoduong:300, vetc:2412932},
+ {tuyen:"HCM ⇄ Đà Nẵng", xe:"Xe 8T",  km:960,  dau:20, ure:0.9, luong:2000000, baoduong:300, vetc:1713769},
+ {tuyen:"HCM ⇄ Hà Nội",  xe:"Xe 15T", km:1710, dau:23, ure:1.2, luong:4250000, baoduong:350, vetc:3509589},
+ {tuyen:"HCM ⇄ Đà Nẵng", xe:"Xe 15T", km:960,  dau:23, ure:1.2, luong:2125000, baoduong:350, vetc:2483392},
 ];
-const GIA_URE = 13200;   /* đ/lít, chưa VAT */
-const VAT     = 0.08;    /* VAT dịch vụ vận tải */
-const MOC     = [0.65,0.70,0.75,0.80];
-const GIAM_KHUHOI = 0.05;  /* khứ hồi giảm 5% so với 2x một chiều */
-/* >>> ADMIN CHỈNH 2 SỐ NÀY KHI GIÁ DẦU/CHÍNH SÁCH THAY ĐỔI <<< */
-const GIA_DAU_HIENHANH = 22290;  /* đ/lít, chưa VAT */
-const MOC_CONGBO = 0.70;         /* mốc % CP/DT dùng để báo giá */
-/* ========================================================================== */
+const GIA_URE=13200, VAT=0.08, GIAM_KHUHOI=0.05;
+/* =========================================================================== */
+let MANUAL = ROUTES.map(()=>null);   /* giá gõ tay; null = dùng giá tự tính */
+let quoteMode = "dinhmuc";  /* báo giá theo: dinhmuc | tay */
+function inBaoGia(mode){ quoteMode=mode; render(); setTimeout(function(){ window.print(); },60); }
 
 const f = n => Math.round(n).toLocaleString("vi-VN");
-const cpDau  = (r,d) => r.km * r.dau/100 * d;
-const cpUre  = r => r.km * r.ure/100 * GIA_URE;
-const cpBd   = r => r.km * r.baoduong;
-const cost   = (r,d) => cpDau(r,d) + cpUre(r) + r.luong + cpBd(r) + r.vetc;
-const gia    = (r,d,m) => Math.ceil(cost(r,d)/m/100000)*100000;
-const giaKH  = (r,d,m) => Math.ceil(gia(r,d,m)*2*(1-GIAM_KHUHOI)/100000)*100000;
-const colH   = h => `<thead><tr><th class="l">${h}</th>${ROUTES.map(r=>`<th>${r.xe.replace("Xe ","")}·${r.tuyen.includes("Hà Nội")?"HN":"ĐN"}</th>`).join("")}</tr></thead>`;
-const rowFn  = (lbl,fn,cls)=>`<tr class="${cls||""}"><td class="l">${lbl}</td>${ROUTES.map(fn).join("")}</tr>`;
+const cpDau=(r,d)=>r.km*r.dau/100*d, cpUre=r=>r.km*r.ure/100*GIA_URE, cpBd=r=>r.km*r.baoduong;
+const cost=(r,d)=>cpDau(r,d)+cpUre(r)+r.luong+cpBd(r)+r.vetc;
+const giaTu=(r,d,m)=>Math.ceil(cost(r,d)/m/100000)*100000;
+const pub=(i,d,m)=> MANUAL[i]!=null ? MANUAL[i] : giaTu(ROUTES[i],d,m);
+const pubKH=(i,d,m)=>Math.ceil(pub(i,d,m)*2*(1-GIAM_KHUHOI)/100000)*100000;
+const colH=h=>`<thead><tr><th class="l">${h}</th>${ROUTES.map(r=>`<th>${r.xe.replace("Xe ","")}·${r.tuyen.includes("Hà Nội")?"HN":"ĐN"}</th>`).join("")}</tr></thead>`;
+const rowFn=(lbl,fn,cls)=>`<tr class="${cls||""}"><td class="l">${lbl}</td>${ROUTES.map(fn).join("")}</tr>`;
+
+function onEdit(i,val){ const n=parseFloat(String(val).replace(/[^0-9]/g,"")); MANUAL[i]=isNaN(n)||n<=0?null:n; render(); }
+function resetAll(){ MANUAL=ROUTES.map(()=>null); render(); }
 
 function render(){
- const d = parseFloat(document.getElementById("ds").value)||0;
- const m = parseFloat(document.getElementById("rt").value);
+ const d=parseFloat(document.getElementById("ds").value)||0, m=parseFloat(document.getElementById("rt").value);
 
- /* ----- Báo giá khách (KHÔNG hiện %, chi phí, lợi nhuận) ----- */
- document.getElementById("qbody").innerHTML = ROUTES.map(r=>{
-   const g=gia(r,d,m);
-   return `<tr><td class="l">${r.tuyen}</td><td class="l">${r.xe}</td>
-     <td class="big">${f(g)}</td><td>${f(giaKH(r,d,m))}</td></tr>`;
- }).join("");
- const dt = new Date();
+ /* Chỉnh giá tay */
+ document.getElementById("te").innerHTML =
+  '<thead><tr><th class="l">Tuyến</th><th class="l">Loại xe</th><th>Giá tự tính</th><th>Giá công bố (gõ tay)</th><th>Khứ hồi</th></tr></thead><tbody>'+
+  ROUTES.map((r,i)=>{
+    const tu=giaTu(r,d,m), edited=MANUAL[i]!=null;
+    return `<tr><td class="l">${r.tuyen}</td><td class="l">${r.xe}</td>
+      <td>${f(tu)}</td>
+      <td><input class="pinput ${edited?'edited':''}" value="${f(pub(i,d,m))}" onchange="onEdit(${i},this.value)"></td>
+      <td>${f(pubKH(i,d,m))}</td></tr>`;
+  }).join("")+'</tbody>';
 
- /* ----- Cards nội bộ ----- */
- document.getElementById("cards").innerHTML = ROUTES.map(r=>{
-   const g = gia(r,d,m);
-   return `<div class="card"><div class="tp" style="background:${r.bg}">
-     <div class="rt">${r.tuyen}</div><div class="tk" style="color:${r.mau}">${r.xe}</div></div>
-     <div class="bd"><div class="pr" style="color:${r.mau}">${f(g)}<small> đ</small></div>
-     <div class="vt">Gồm VAT 8%: <b>${f(g*(1+VAT))}</b></div>
-     <div class="rtp">Khứ hồi (−5%): ${f(giaKH(r,d,m))} đ</div></div></div>`;
- }).join("");
+ /* Báo giá khách */
+ const _qp = i => quoteMode==='tay' ? pub(i,d,m) : giaTu(ROUTES[i],d,m);
+ const _qkh = i => Math.ceil(_qp(i)*2*(1-GIAM_KHUHOI)/100000)*100000;
+ document.getElementById("qbody").innerHTML = ROUTES.map((r,i)=>
+   `<tr><td class="l">${r.tuyen}</td><td class="l">${r.xe}</td>
+    <td style="font-weight:800;color:#143a66">${f(_qp(i))}</td><td>${f(_qkh(i))}</td></tr>`).join("");
+ var _ql=document.getElementById("quoteModeLabel"); if(_ql) _ql.textContent = (quoteMode==='tay' ? "● Đang theo GIÁ TAY (đã chỉnh)" : "● Đang theo GIÁ ĐỊNH MỨC (tự tính)");
 
- document.getElementById("t1").innerHTML = colH("% CP/DT")+"<tbody>"+
-   MOC.map(mm=>`<tr class="${mm===m?'hlr':''}"><td class="l">${Math.round(mm*100)}%</td>${ROUTES.map(r=>`<td>${f(gia(r,d,mm))}</td>`).join("")}</tr>`).join("")+"</tbody>";
-
+ /* Diễn giải */
  var H2='<thead><tr><th class="l">Bước tính</th><th class="l">Công thức</th>'+ROUTES.map(r=>`<th>${r.xe.replace("Xe ","")}·${r.tuyen.includes("Hà Nội")?"HN":"ĐN"}</th>`).join("")+'</tr></thead>';
  var span=2+ROUTES.length, dec=(x,n)=>x.toFixed(n).replace(".",",");
  var sec=t=>`<tr class="secrow"><td class="l" colspan="${span}">${t}</td></tr>`;
@@ -242,28 +194,23 @@ function render(){
   det("VETC đã VAT (số thực sao kê)","chuyến thực 05–07/03", r=>`<td>${f(r.vetc*(1+VAT))}</td>`)+
   det("→ VETC chưa VAT","VETC ÷ (1+8%)", r=>`<td>${f(r.vetc)}</td>`,"gr")+
   det("TỔNG CHI PHÍ 1 CHIỀU","trực tiếp xe + VETC", r=>`<td>${f(cost(r,d))}</td>`,"hlr")+
-  det("GIÁ BÁN "+Math.round(m*100)+"% CP/DT","tổng cost ÷ mốc %", (r,i)=>`<td>${f(gia(r,d,m))}</td>`,"secr")+
-  det("Lợi nhuận (giá − cost)","giá bán − tổng cost", (r,i)=>`<td>${f(gia(r,d,m)-cost(r,d))}</td>`)+
+  det("GIÁ BÁN (định mức)","tổng cost ÷ mốc %", (r,i)=>`<td>${f(giaTu(r,d,m))}</td>`,"secr")+
+  det("Lợi nhuận (định mức)","giá định mức − tổng cost", (r,i)=>`<td>${f(giaTu(r,d,m)-cost(r,d))}</td>`)+
   det("COST / KM (đ/km)","tổng cost ÷ km", r=>`<td>${f(cost(r,d)/r.km)}</td>`,"hlr")+
   "</tbody>";
 
+ /* Định mức */
  document.getElementById("t3").innerHTML = colH("Định mức")+"<tbody>"+
-   rowFn("Quãng đường (km)",   r=>`<td>${f(r.km)}</td>`)+
-   rowFn("Tiêu hao dầu (L/100km)", r=>`<td>${r.dau}</td>`)+
-   rowFn("Giá dầu (đ/L)",      ()=>`<td>${f(d)}</td>`)+
-   rowFn("Ure (L/100km)",      r=>`<td>${r.ure}</td>`)+
-   rowFn("Giá ure (đ/L)",      ()=>`<td>${f(GIA_URE)}</td>`)+
-   rowFn("Lương khoán (đ)",    r=>`<td>${f(r.luong)}</td>`)+
-   rowFn("Bảo dưỡng (đ/km)",   r=>`<td>${r.baoduong}</td>`)+
-   rowFn("VETC chưa VAT (đ)",  r=>`<td>${f(r.vetc)}</td>`)+"</tbody>";
-
- document.getElementById("up").textContent = "Cập nhật "+dt.toLocaleDateString("vi-VN")+" · dầu "+f(d)+"đ/L";
+   rowFn("Quãng đường (km)",r=>`<td>${f(r.km)}</td>`)+rowFn("Tiêu hao dầu (L/100km)",r=>`<td>${r.dau}</td>`)+
+   rowFn("Giá dầu (đ/L)",()=>`<td>${f(d)}</td>`)+rowFn("Ure (L/100km)",r=>`<td>${r.ure}</td>`)+
+   rowFn("Giá ure (đ/L)",()=>`<td>${f(GIA_URE)}</td>`)+rowFn("Lương khoán (đ)",r=>`<td>${f(r.luong)}</td>`)+
+   rowFn("Bảo dưỡng (đ/km)",r=>`<td>${r.baoduong}</td>`)+rowFn("VETC chưa VAT (đ)",r=>`<td>${f(r.vetc)}</td>`)+"</tbody>";
 }
 document.getElementById("ds").addEventListener("input", render);
 document.getElementById("rt").addEventListener("change", render);
 document.querySelectorAll(".tb").forEach(b=>b.addEventListener("click",()=>{
  document.querySelectorAll(".tb").forEach(x=>x.classList.remove("on")); b.classList.add("on");
- ["q","g","d","m"].forEach(p=>document.getElementById("pane-"+p).style.display=(p===b.dataset.p?"block":"none"));
+ ["e","q","d","m"].forEach(p=>document.getElementById("pane-"+p).style.display=(p===b.dataset.p?"block":"none"));
 }));
 const _t0=new Date();
 const _qd0=document.getElementById("qdate");
