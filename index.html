@@ -251,5 +251,6 @@ render();
 <script>
 (function(){var b=document.getElementById("tb-th"),p=document.getElementById("pane-th");if(!b||!p)return;var others=[].slice.call(document.querySelectorAll(".tabs .tb")).filter(function(x){return x!==b;});b.addEventListener("click",function(){["e","q","d","m"].forEach(function(k){var el=document.getElementById("pane-"+k);if(el)el.style.display="none";});others.forEach(function(x){x.classList.remove("on");});p.style.display="block";b.classList.add("on");});others.forEach(function(x){x.addEventListener("click",function(){p.style.display="none";b.classList.remove("on");});});})();
 </script>
+<script src="kh-cp-dt.js"></script>
 </body>
 </html>
