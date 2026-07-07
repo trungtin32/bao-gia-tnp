@@ -49,7 +49,7 @@ a.home{display:inline-block;margin-bottom:8px;color:var(--ac);text-decoration:no
 <div id="app" style="display:none">
  <div class="tot" id="tot"></div>
  <div class="tblwrap"><table><thead><tr>
-  <th>MÃ CHUYẾN</th><th>LỘ TRÌNH</th><th>BSX</th><th>NGÀY NHẬN</th><th>NGÀY HT</th><th>TÀI XẾ</th><th>SỐ ĐƠN</th>
+  <th>MÃ CHUYẾN</th><th>LỘ TRÌNH</th><th>BSX</th><th>NGÀY VC</th><th>NGÀY NHẬN</th><th>NGÀY HT</th><th>TÀI XẾ</th><th>SỐ ĐƠN</th>
   <th>DOANH THU</th><th>DẦU</th><th>URE</th><th>VETC</th><th>LƯƠNG</th><th>PHỤ PHÍ</th><th>TỔNG CP</th><th>DT CÒN LẠI</th><th>% CÒN LẠI</th><th>KM</th><th>TIÊU HAO(L)</th><th>L/100KM</th><th>XẾP LOẠI</th>
  </tr></thead><tbody id="tb"></tbody></table></div>
  <div class="cnt" id="cnt"></div>
@@ -92,7 +92,7 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
  let hr=0;for(let i=0;i<Math.min(ord.length,6);i++){if(ord[i].some(c=>/MA DON/i.test(c))){hr=i;break;}}
  const O=[];
  for(let i=hr+1;i<ord.length;i++){const r=ord[i];if(!r||(!r[1]&&!r[2]))continue;
-  O.push({madon:(r[1]||'').trim(),kh:(r[2]||'').trim(),ngaynhan:vdate(r[4]),ngaygiao:vdate(r[7]),gioht:(r[8]||'').trim(),
+  O.push({madon:(r[1]||'').trim(),kh:(r[2]||'').trim(),ngaynhan:vdate(r[4]),ngayvc:vdate(r[6]),ngaygiao:vdate(r[7]),gioht:(r[8]||'').trim(),
    bsx:(r[9]||'').trim(),tx1:(r[10]||'').replace(/\s*0[\d\s.]{8,}/,'').trim(),km1:vnum(r[12]),km2:vnum(r[13]),luong:vnum(r[14]),
    diemnhan:(r[18]||'').trim(),diemgiao:(r[19]||'').trim(),tua:(r[20]||'').trim(),nv:(r[21]||'').trim(),dthu:vnum(r[22]),
    ncc:(r[23]||'').trim(),bocxep:vnum(r[26]),tc:vnum(r[27]),ps:vnum(r[28])});}
@@ -113,14 +113,14 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
    const a1=t.km1,a2=t.km2,b1=o.km1,b2=o.km2;let ov=false;
    if(a1&&b1&&a2&&b2){const span=Math.max(a2,b2)-Math.min(a1,b1);ov=(Math.min(a2,b2)-Math.max(a1,b1)>0||a1===b1||a2===b2)&&span<SPAN;}
    else if(a1&&b1)ov=(a1===b1);
-   const sd=(t.nv.toLowerCase().includes('gh')&&o.nv.toLowerCase().includes('gh'))&&key(t.ngaynhan)===key(o.ngaynhan);
+   const sd=(t.nv.toLowerCase().includes('gh')&&o.nv.toLowerCase().includes('gh'))&&t.ngayvc&&o.ngayvc&&key(t.ngayvc)===key(o.ngayvc);
    if(ov||(sd&&(!a1||!b1))){t.orders.push(o);const ks=[a1,b1].filter(Boolean),ke=[a2,b2].filter(Boolean);
     t.km1=ks.length?Math.min(...ks):0;t.km2=ke.length?Math.max(...ke):0;
-    if(o.ngaygiao&&(!t.ngaygiao||key(o.ngaygiao)>key(t.ngaygiao))){t.ngaygiao=o.ngaygiao;t.gioht=o.gioht;}merged=true;break;}}
-  if(!merged)trips.push({bsx:o.bsx,ngaynhan:o.ngaynhan,ngaygiao:o.ngaygiao,gioht:o.gioht,km1:o.km1,km2:o.km2,nv:o.nv,tua:o.tua,orders:[o]});}
+    if(o.ngaygiao&&(!t.ngaygiao||key(o.ngaygiao)>key(t.ngaygiao))){t.ngaygiao=o.ngaygiao;t.gioht=o.gioht;}if(o.ngayvc&&(!t.ngayvc||key(o.ngayvc)<key(t.ngayvc)))t.ngayvc=o.ngayvc;merged=true;break;}}
+  if(!merged)trips.push({bsx:o.bsx,ngaynhan:o.ngaynhan,ngayvc:o.ngayvc,ngaygiao:o.ngaygiao,gioht:o.gioht,km1:o.km1,km2:o.km2,nv:o.nv,tua:o.tua,orders:[o]});}
  // ma chuyen + metrics
  const seq={};const rows=[];
- for(const t of trips){const d=t.ngaynhan;if(!d)continue;
+ for(const t of trips){const d=t.ngayvc||t.ngaynhan;if(!d)continue;
   let tua=(t.tua||'').trim();if(/^\d+(\.\d+)?$/.test(tua))tua=tua.endsWith('.0')?tua.slice(0,-2):tua.replace('.',',');
   const dd=String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0');
   let base=dd+'_'+manv(t.nv)+'_'+t.bsx.replace(/-/g,'')+(tua?'_'+tua:'');
@@ -142,7 +142,7 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
   const conlai=dthu-tongcp;const pct=dthu?conlai/dthu:0;
   const l100=km?lit/km*100:0;
   const xl=pct>=0.4?'Tốt':pct>=0.2?'Đạt':'Kém';
-  rows.push({ma,route,bsx:t.bsx,ngaynhan:t.ngaynhan,ngaygiao:t.ngaygiao,tx:t.orders[0].tx1,sodon,dthu,dau,ure,vetc,luong,phuphi,tongcp,conlai,pct,km,lit,l100,xl,dk:dnhan});}
+  rows.push({ma,route,bsx:t.bsx,ngayvc:t.ngayvc,ngaynhan:t.ngaynhan,ngaygiao:t.ngaygiao,tx:t.orders[0].tx1,sodon,dthu,dau,ure,vetc,luong,phuphi,tongcp,conlai,pct,km,lit,l100,xl,dk:dnhan});}
  return rows;
 }
 
@@ -169,7 +169,7 @@ function render(){
  const tot=[['SỐ CHUYẾN',rows.length],['SỐ ĐƠN',sodon],['DOANH THU',fmt(dthu)],['TỔNG CP',fmt(cp)],['DT CÒN LẠI',fmt(conlai)],['% CÒN LẠI',dthu?pf(conlai/dthu):'—'],['KM',fmt(km)],['TIÊU HAO(L)',fmt(lit)]];
  document.getElementById('tot').innerHTML=tot.map(t=>`<div class="card"><div class="l">${t[0]}</div><div class="v">${t[1]}</div></div>`).join('');
  document.getElementById('tb').innerHTML=rows.map(r=>{const neg=r.conlai<0?' neg':'';
-  return `<tr><td class="ma mono">${esc(r.ma)}</td><td class="route" title="${esc(r.route)}">${esc(r.route)}</td><td>${r.bsx}</td><td>${fmtd(r.ngaynhan)}</td><td>${fmtd(r.ngaygiao)}</td><td>${esc(r.tx)}</td><td class="n">${r.sodon}</td>
+  return `<tr><td class="ma mono">${esc(r.ma)}</td><td class="route" title="${esc(r.route)}">${esc(r.route)}</td><td>${r.bsx}</td><td>${fmtd(r.ngayvc)}</td><td>${fmtd(r.ngaynhan)}</td><td>${fmtd(r.ngaygiao)}</td><td>${esc(r.tx)}</td><td class="n">${r.sodon}</td>
   <td class="n">${fmt(r.dthu)}</td><td class="n">${fmt(r.dau)}</td><td class="n">${fmt(r.ure)}</td><td class="n">${fmt(r.vetc)}</td><td class="n">${fmt(r.luong)}</td><td class="n">${fmt(r.phuphi)}</td>
   <td class="n">${fmt(r.tongcp)}</td><td class="n${neg}">${fmt(r.conlai)}</td><td class="n${neg}">${pf(r.pct)}</td><td class="n">${fmt(r.km)}</td><td class="n">${d1(r.lit)}</td><td class="n">${d1(r.l100)}</td>
   <td><span class="pill ${cls(r.xl)}">${r.xl}</span></td></tr>`;}).join('');
