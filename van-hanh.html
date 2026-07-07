@@ -113,8 +113,9 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
    const a1=t.km1,a2=t.km2,b1=o.km1,b2=o.km2;let ov=false;
    if(a1&&b1&&a2&&b2){const span=Math.max(a2,b2)-Math.min(a1,b1);ov=(Math.min(a2,b2)-Math.max(a1,b1)>0||a1===b1||a2===b2)&&span<SPAN;}
    else if(a1&&b1)ov=(a1===b1);
-   const sd=(t.nv.toLowerCase().includes('gh')&&o.nv.toLowerCase().includes('gh'))&&t.ngayvc&&o.ngayvc&&key(t.ngayvc)===key(o.ngayvc);
-   if(ov||(sd&&(!a1||!b1))){t.orders.push(o);const ks=[a1,b1].filter(Boolean),ke=[a2,b2].filter(Boolean);
+   const _tn=s=>{s=(s||'').trim();if(/^\d+(\.\d+)?$/.test(s))s=s.endsWith('.0')?s.slice(0,-2):s.replace('.',',');return s;};
+   const sd=t.ngayvc&&o.ngayvc&&key(t.ngayvc)===key(o.ngayvc)&&manv(t.nv)===manv(o.nv)&&_tn(t.tua)===_tn(o.tua);
+   if(ov||sd){t.orders.push(o);const ks=[a1,b1].filter(Boolean),ke=[a2,b2].filter(Boolean);
     t.km1=ks.length?Math.min(...ks):0;t.km2=ke.length?Math.max(...ke):0;
     if(o.ngaygiao&&(!t.ngaygiao||key(o.ngaygiao)>key(t.ngaygiao))){t.ngaygiao=o.ngaygiao;t.gioht=o.gioht;}if(o.ngayvc&&(!t.ngayvc||key(o.ngayvc)<key(t.ngayvc)))t.ngayvc=o.ngayvc;merged=true;break;}}
   if(!merged)trips.push({bsx:o.bsx,ngaynhan:o.ngaynhan,ngayvc:o.ngayvc,ngaygiao:o.ngaygiao,gioht:o.gioht,km1:o.km1,km2:o.km2,nv:o.nv,tua:o.tua,orders:[o]});}
