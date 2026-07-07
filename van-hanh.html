@@ -68,6 +68,7 @@ function manv(nv){const x=(nv||'').toLowerCase();
  if(x.includes('ngắn nội miền'))return'NTNM';if(x.includes('cận miền'))return'NTCM';
  if(x.includes('ghép nam'))return'HGNB';if(x.includes('ghép bắc'))return'HGBN';return'KHAC';}
 function cleanBsx(s){return String(s||'').trim().replace(/V$/,'');}
+async function fetchTxt(u,tries){tries=tries||3;let err;for(let i=0;i<tries;i++){try{const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),15000);const r=await fetch(u,{signal:ctl.signal});clearTimeout(to);if(!r.ok)throw new Error('HTTP '+r.status);return await r.text();}catch(e){err=e;await new Promise(s=>setTimeout(s,900*(i+1)));}}throw err;}
 
 let RAW=null;
 async function load(){
@@ -75,11 +76,11 @@ async function load(){
  document.getElementById('status').textContent='Đang tải dữ liệu từ Google Sheet…';
  try{
   const [ord,dau,ure,vetc,cpk]=await Promise.all([
-   fetch(gU(SID_ORD,'gid='+GID_ORD)).then(r=>r.text()),
-   fetch(gU(SID_CP,'sheet=NHAP_DAU')).then(r=>r.text()),
-   fetch(gU(SID_CP,'sheet=NHAP_URE')).then(r=>r.text()),
-   fetch(gU(SID_CP,'sheet=NHAP_VETC')).then(r=>r.text()),
-   fetch(gU(SID_CP,'sheet='+encodeURIComponent('CP khác ( cân xe, bãi xe..)'))).then(r=>r.text()),
+   fetchTxt(gU(SID_ORD,'gid='+GID_ORD)),
+   fetchTxt(gU(SID_CP,'sheet=NHAP_DAU')),
+   fetchTxt(gU(SID_CP,'sheet=NHAP_URE')),
+   fetchTxt(gU(SID_CP,'sheet=NHAP_VETC')),
+   fetchTxt(gU(SID_CP,'sheet='+encodeURIComponent('CP khác ( cân xe, bãi xe..)'))),
   ]);
   RAW=compute(parseCSV(ord),parseCSV(dau),parseCSV(ure),parseCSV(vetc),parseCSV(cpk));
   initFilters();render();
