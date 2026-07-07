@@ -178,4 +178,12 @@ function render(){
  document.getElementById('cnt').textContent='Hiển thị '+rows.length+' chuyến';
 }
 function setRange(k){const y=2026;const mm={m5:[5],m6:[6],m7:[7]}[k];const f1=document.getElementById('f1'),f2=document.getElementById('f2');
- if(k==='all'){initFiltersAll();}else{const m=mm[0];f1.value=`${y}-${String(m).padStart(2,'0')}-01`;const last=new Date(y
+ if(k==='all'){initFiltersAll();}else{const m=mm[0];f1.value=`${y}-${String(m).padStart(2,'0')}-01`;const last=new Date(y,m,0).getDate();f2.value=`${y}-${String(m).padStart(2,'0')}-${last}`;}render();}
+function initFiltersAll(){const ks=RAW.map(r=>r.dk).filter(Boolean);const mn=Math.min(...ks),mx=Math.max(...ks);const iso=k=>`${Math.floor(k/10000)}-${String(Math.floor(k/100)%100).padStart(2,'0')}-${String(k%100).padStart(2,'0')}`;document.getElementById('f1').value=iso(mn);document.getElementById('f2').value=iso(mx);}
+document.getElementById('f1').addEventListener('input',render);
+document.getElementById('f2').addEventListener('input',render);
+document.getElementById('f3').addEventListener('change',render);
+document.getElementById('reload').addEventListener('click',load);
+document.querySelectorAll('.presets button').forEach(b=>b.addEventListener('click',()=>setRange(b.dataset.p)));
+load();
+</script></div></body></html>
