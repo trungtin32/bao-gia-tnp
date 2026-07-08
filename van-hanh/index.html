@@ -79,10 +79,10 @@ async function load(){
  try{
   const [ord,dau,ure,vetc,cpk]=await Promise.all([
    fetchTxt(eU(SID_ORD,GID_ORD)),
-   fetchTxt(gU(SID_CP,'tq='+encodeURIComponent('select B,C,F,H,J where B is not null')+'&sheet=NHAP_DAU')),
-   fetchTxt(gU(SID_CP,'tq='+encodeURIComponent('select B,C,J where B is not null')+'&sheet=NHAP_URE')),
-   fetchTxt(gU(SID_CP,'tq='+encodeURIComponent('select C,J,K,L,M,N,O,P where C is not null')+'&sheet=NHAP_VETC')),
-   fetchTxt(gU(SID_CP,'tq='+encodeURIComponent('select A,C,E where C is not null')+'&sheet='+encodeURIComponent('CP khác ( cân xe, bãi xe..)'))),
+   fetchTxt(eU(SID_CP,'0')),
+   fetchTxt(eU(SID_CP,'695565677')),
+   fetchTxt(eU(SID_CP,'736934312')),
+   fetchTxt(eU(SID_CP,'1598506940')),
   ]);
   RAW=compute(parseCSV(ord),parseCSV(dau),parseCSV(ure),parseCSV(vetc),parseCSV(cpk));
   initFilters();render();
@@ -102,11 +102,11 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
  // ---- cost tables ----
  function costRows(rows,ci){const out=[];for(let i=0;i<rows.length;i++){const r=rows[i];const d=vdate(r[ci.d]);if(!d)continue;
    out.push({bsx:cleanBsx(r[ci.b]),d:key(d),tien:vnum(r[ci.t]),lit:ci.l!=null?vnum(r[ci.l]):0,odo:ci.o!=null?vnum(r[ci.o]):0});}return out;}
- const DAU=costRows(dauR,{d:0,b:1,o:2,l:3,t:4});
- const URE=costRows(ureR,{d:0,b:1,t:2});
+ const DAU=costRows(dauR,{d:1,b:2,o:5,l:7,t:9});
+ const URE=costRows(ureR,{d:1,b:2,t:9});
  // VETC (thu gọn: C,J,K,L,M,N,O,P): bsx=0, tien=1, ngày nằm trong cột thời gian 2..7
- const VETC=[];for(const r of vetcR){let dd=null;for(let c=2;c<Math.min(r.length,8);c++){const x=vdate(r[c]);if(x){dd=x;break;}}if(!dd)continue;VETC.push({bsx:cleanBsx(r[0]),d:key(dd),tien:vnum(r[1])});}
- const CPK=costRows(cpkR,{d:0,b:1,t:2});
+ const VETC=[];for(const r of vetcR){let dd=null;for(let c=10;c<Math.min(r.length,16);c++){const x=vdate(r[c]);if(x){dd=x;break;}}if(!dd)continue;VETC.push({bsx:cleanBsx(r[2]),d:key(dd),tien:vnum(r[9])});}
+ const CPK=costRows(cpkR,{d:0,b:2,t:4});
  // ---- merge trips ----
  const tnp=O.filter(o=>o.ncc==='TNP LOG'&&o.bsx);
  tnp.sort((a,b)=>a.bsx<b.bsx?-1:a.bsx>b.bsx?1:(key(a.ngaynhan)-key(b.ngaynhan))|| (a.km1-b.km1));
