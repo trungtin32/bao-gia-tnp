@@ -40,6 +40,7 @@ a.home{display:inline-block;margin-bottom:8px;color:var(--ac);text-decoration:no
  <div><label>Từ ngày</label><input type="date" id="f1"></div>
  <div><label>Đến ngày</label><input type="date" id="f2"></div>
  <div><label>Xe (BSX)</label><select id="f3"><option>TẤT CẢ</option></select></div>
+ <div><label>Định mức (L/100km)</label><input type="number" id="dm" value="40" step="1" min="0" style="min-width:90px;width:100px"></div>
  <div><label>Chọn nhanh</label><div class="presets">
    <button data-p="m5">Tháng 5</button><button data-p="m6">Tháng 6</button><button data-p="m7">Tháng 7</button><button data-p="all">Toàn bộ</button>
  </div></div>
@@ -50,7 +51,7 @@ a.home{display:inline-block;margin-bottom:8px;color:var(--ac);text-decoration:no
  <div class="tot" id="tot"></div>
  <div class="tblwrap"><table><thead><tr>
   <th>MÃ CHUYẾN</th><th>LỘ TRÌNH</th><th>BSX</th><th>NGÀY VC</th><th>NGÀY NHẬN</th><th>NGÀY HT</th><th>TÀI XẾ</th><th>SỐ ĐƠN</th>
-  <th>DOANH THU</th><th>DẦU</th><th>URE</th><th>VETC</th><th>LƯƠNG</th><th>PHỤ PHÍ</th><th>TỔNG CP</th><th>DT CÒN LẠI</th><th>% CÒN LẠI</th><th>KM</th><th>TIÊU HAO(L)</th><th>L/100KM</th><th>XẾP LOẠI</th>
+  <th>DOANH THU</th><th>DẦU</th><th>URE</th><th>VETC</th><th>LƯƠNG</th><th>PHỤ PHÍ</th><th>TỔNG CP</th><th>DT CÒN LẠI</th><th>% CÒN LẠI</th><th>KM</th><th>TIÊU HAO(L)</th><th>ĐM(L)</th><th>CHÊNH(L)</th><th>L/100KM</th><th>XẾP LOẠI</th>
  </tr></thead><tbody id="tb"></tbody></table></div>
  <div class="cnt" id="cnt"></div>
 </div>
@@ -166,6 +167,7 @@ function cls(x){return x==='Tốt'?'p-g':x==='Kém'?'p-r':'p-a';}
 function keyStr(s){const m=s.match(/(\d{4})-(\d{2})-(\d{2})/);return m?+m[1]*10000+ +m[2]*100+ +m[3]:0;}
 function render(){
  if(!RAW)return;
+ const DM=+document.getElementById('dm').value||0;
  const a=keyStr(document.getElementById('f1').value),b=keyStr(document.getElementById('f2').value),x=document.getElementById('f3').value;
  const rows=RAW.filter(r=>r.dk>=a&&r.dk<=b&&(x==='TẤT CẢ'||r.bsx===x));
  const S=k=>rows.reduce((s,r)=>s+(r[k]||0),0);
@@ -175,7 +177,7 @@ function render(){
  document.getElementById('tb').innerHTML=rows.map(r=>{const neg=r.conlai<0?' neg':'';
   return `<tr><td class="ma mono">${esc(r.ma)}</td><td class="route" title="${esc(r.route)}">${esc(r.route)}</td><td>${r.bsx}</td><td>${fmtd(r.ngayvc)}</td><td>${fmtd(r.ngaynhan)}</td><td>${fmtd(r.ngaygiao)}</td><td>${esc(r.tx)}</td><td class="n">${r.sodon}</td>
   <td class="n">${fmt(r.dthu)}</td><td class="n">${fmt(r.dau)}</td><td class="n">${fmt(r.ure)}</td><td class="n">${fmt(r.vetc)}</td><td class="n">${fmt(r.luong)}</td><td class="n">${fmt(r.phuphi)}</td>
-  <td class="n">${fmt(r.tongcp)}</td><td class="n${neg}">${fmt(r.conlai)}</td><td class="n${neg}">${pf(r.pct)}</td><td class="n">${fmt(r.km)}</td><td class="n">${d1(r.lit)}</td><td class="n">${d1(r.l100)}</td>
+  <td class="n">${fmt(r.tongcp)}</td><td class="n${neg}">${fmt(r.conlai)}</td><td class="n${neg}">${pf(r.pct)}</td><td class="n">${fmt(r.km)}</td><td class="n">${d1(r.lit)}</td><td class="n">${d1(r.km*DM/100)}</td><td class="n${(r.lit-r.km*DM/100)>0?' neg':''}">${d1(r.lit-r.km*DM/100)}</td><td class="n">${d1(r.l100)}</td>
   <td><span class="pill ${cls(r.xl)}">${r.xl}</span></td></tr>`;}).join('');
  document.getElementById('cnt').textContent='Hiển thị '+rows.length+' chuyến';
 }
@@ -185,6 +187,7 @@ function initFiltersAll(){const ks=RAW.map(r=>r.dk).filter(Boolean);const mn=Mat
 document.getElementById('f1').addEventListener('input',render);
 document.getElementById('f2').addEventListener('input',render);
 document.getElementById('f3').addEventListener('change',render);
+document.getElementById('dm').addEventListener('input',render);
 document.getElementById('reload').addEventListener('click',load);
 document.querySelectorAll('.presets button').forEach(b=>b.addEventListener('click',()=>setRange(b.dataset.p)));
 load();
