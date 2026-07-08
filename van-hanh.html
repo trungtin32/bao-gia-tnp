@@ -32,6 +32,7 @@ tr:hover td{background:#f6faff}
 .cnt{color:#667;font-size:12px;margin:8px 2px 0}
 .st{padding:24px;text-align:center;color:#667}
 a.home{display:inline-block;margin-bottom:8px;color:var(--ac);text-decoration:none;font-weight:700;font-size:13px}
+th.gp{position:static;text-align:center;font-size:11px}td.cDT,th.cDT{background:#eaf3de}td.cHQ,th.cHQ{background:#e6f1fb}td.cDM,th.cDM{background:#faeeda}td.cRO,th.cRO{background:#fcebeb}
 </style></head><body><div class="wrap">
 <a class="home" href="index.html">← Về trang chính</a>
 <h1>Vận Hành</h1>
@@ -49,9 +50,9 @@ a.home{display:inline-block;margin-bottom:8px;color:var(--ac);text-decoration:no
 <div id="status" class="st">Đang tải dữ liệu từ Google Sheet…</div>
 <div id="app" style="display:none">
  <div class="tot" id="tot"></div>
- <div class="tblwrap"><table><thead><tr>
-  <th>MÃ CHUYẾN</th><th>LỘ TRÌNH</th><th>BSX</th><th>NGÀY VC</th><th>NGÀY NHẬN</th><th>NGÀY HT</th><th>TÀI XẾ</th><th>SỐ ĐƠN</th>
-  <th>DOANH THU</th><th>DẦU</th><th>URE</th><th>VETC</th><th>VETC RỖNG</th><th>LƯƠNG</th><th>PHỤ PHÍ</th><th>TỔNG CP</th><th>DT CÒN LẠI</th><th>% CÒN LẠI</th><th>KM</th><th>LÍT ĐỔ</th><th>ĐM(L)</th><th>CHÊNH(L)</th><th>L/100KM</th><th>XẾP LOẠI</th>
+ <div class="tblwrap"><table><thead><tr><th colspan="8" class="gp">CHUYẾN</th><th class="gp cDT">DOANH THU</th><th colspan="6" class="gp">CHI PHÍ TRONG CHUYẾN</th><th colspan="2" class="gp cHQ">HIỆU QUẢ</th><th colspan="5" class="gp cDM">ĐỐI CHIẾU ĐỊNH MỨC</th><th colspan="3" class="gp cRO">CHẠY RỖNG</th><th class="gp">ĐÁNH GIÁ</th></tr><tr>
+  <th>MÃ CHUYẾN</th><th>LỘ TRÌNH</th><th>BSX</th><th>NGÀY NHẬN</th><th>NGÀY VC</th><th>NGÀY HT</th><th>TÀI XẾ</th><th>SỐ ĐƠN</th>
+  <th class="cDT">DOANH THU</th><th>DẦU</th><th>URE</th><th>VETC</th><th>LƯƠNG</th><th>PHỤ PHÍ</th><th>TỔNG CP</th><th class="cHQ">DT CÒN LẠI</th><th class="cHQ">% CÒN LẠI</th><th class="cDM">KM</th><th class="cDM">DẦU ĐỔ</th><th class="cDM">LÍT ĐỔ</th><th class="cDM">ĐM(L)</th><th class="cDM">CHÊNH(L)</th><th class="cRO">KM RỖNG</th><th class="cRO">DẦU RỖNG</th><th class="cRO">VETC RỖNG</th><th>XẾP LOẠI</th>
  </tr></thead><tbody id="tb"></tbody></table></div>
  <div class="cnt" id="cnt"></div>
 </div>
@@ -128,6 +129,8 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
  const seq={};const rows=[];
  // Gán mỗi lần đổ dầu cho chuyến (cùng BSX) có odo-cuối nhỏ nhất mà >= odo lần đổ → gồm cả lần đổ chuẩn bị đầu chuyến, không trùng sang chuyến khác
  const dauMap=new Map();{const byB={};for(const t of trips){if(t.km2>0)(byB[t.bsx]=byB[t.bsx]||[]).push(t);}for(const b in byB){const arr=byB[b].sort((a,z)=>a.km2-z.km2);for(let i=0;i<arr.length;i++){arr[i]._lo=i>0?arr[i-1].km2:(arr[i].km1||0);}}for(const x of DAU){const arr=byB[x.bsx];if(!arr)continue;let pick=null;for(const t of arr){if(x.odo<=t.km2&&x.odo>t._lo){pick=t;break;}}if(!pick)continue;const cur=dauMap.get(pick)||{tien:0,lit:0};cur.tien+=x.tien;cur.lit+=x.lit;dauMap.set(pick,cur);}}
+ // km có hàng, km rỗng (tới chuyến kế theo odo) + mức tiền dầu/km của xe
+ {const byB={};for(const t of trips){t.kmCoHang=(t.km1&&t.km2&&t.km2>t.km1&&t.km2-t.km1<=SPAN)?(t.km2-t.km1):0;(byB[t.bsx]=byB[t.bsx]||[]).push(t);}for(const b in byB){const arr=byB[b].sort((a,z)=>(a.km1||0)-(z.km1||0));for(let i=0;i<arr.length;i++){const nx=arr[i+1];arr[i].kmRong=(nx&&arr[i].km2&&nx.km1&&nx.km1>arr[i].km2&&nx.km1-arr[i].km2<=SPAN)?(nx.km1-arr[i].km2):0;}let tk=0,tdu=0;for(const t of arr){tk+=t.kmCoHang+t.kmRong;const dg=dauMap.get(t);tdu+=dg?dg.tien:0;}const rate=tk>0?tdu/tk:0;for(const t of arr)t._rate=rate;}}
  // mốc giờ mỗi chuyến (đến kho → hoàn thành) + mốc chuyến kế của xe (cho VETC rỗng)
  {const _now=new Date();const nowKey=key(_now)*10000+_now.getHours()*100+_now.getMinutes();const byB={};for(const t of trips){const ds=Math.min(...t.orders.map(o=>dtm(o.ngaynhan,o.giodenkho)).filter(Boolean));const de=Math.max(...t.orders.map(o=>o.ngaygiao?dtm(o.ngaygiao,o.gioht||'23:59'):(o.ngaynhan?nowKey:0)));t.dstart=isFinite(ds)?ds:0;t.dend=isFinite(de)&&de?de:t.dstart;t._open=!t.orders.some(o=>o.ngaygiao);if(t.dstart)(byB[t.bsx]=byB[t.bsx]||[]).push(t);}for(const b in byB){const arr=byB[b].sort((a,z)=>a.dstart-z.dstart);for(let i=0;i<arr.length;i++){arr[i]._dnext=i+1<arr.length?arr[i+1].dstart:0;}}}
  for(const t of trips){const d=t.ngayvc||t.ngaynhan;if(!d)continue;
@@ -139,9 +142,9 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
   const pts=[];for(const o of t.orders){for(const p of [o.diemnhan,o.diemgiao]){const q=(p||'').replace(/\s+/g,' ').trim();if(q&&(!pts.length||pts[pts.length-1]!==q))pts.push(q);}}
   const route=pts.join(' → ');
   const dnhan=key(t.ngaynhan),dgiao=key(t.ngaygiao||t.ngaynhan);
-  const km=(t.km1&&t.km2&&t.km2>t.km1&&t.km2-t.km1<=SPAN)?(t.km2-t.km1):0;
-  // dau: theo odo-cuối chuyến gần nhất (gồm lần đổ đầu chuyến)
-  const _dg=dauMap.get(t)||{tien:0,lit:0};let dau=_dg.tien,lit=_dg.lit;
+  const km=t.kmCoHang,kmRong=t.kmRong;
+  const _dg=dauMap.get(t)||{tien:0,lit:0};const dauDo=_dg.tien,lit=_dg.lit;
+  const dau=km*t._rate,dauRong=kmRong*t._rate;
   const sumRange=(arr)=>arr.reduce((s,x)=>s+((x.bsx===t.bsx&&x.d>=dnhan&&x.d<=dgiao)?x.tien:0),0);
   const ure=sumRange(URE),cpk=sumRange(CPK);
   const vetc=VETC.reduce((s,x)=>s+((x.bsx===t.bsx&&x.dt>=t.dstart&&x.dt<=t.dend)?x.tien:0),0)/1.08;
@@ -152,9 +155,8 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
   const sodon=t.orders.length;
   const tongcp=luong+phuphi+dau+ure+vetc+cpk;
   const conlai=dthu-tongcp;const pct=dthu?conlai/dthu:0;
-  const l100=km?lit/km*100:0;
   const xl=pct>=0.4?'Tốt':pct>=0.2?'Đạt':'Kém';
-  rows.push({ma,route,bsx:t.bsx,ngayvc:t.ngayvc,ngaynhan:t.ngaynhan,ngaygiao:t.ngaygiao,tx:t.orders[0].tx1,sodon,dthu,dau,ure,vetc,vetcRong,luong,phuphi,tongcp,conlai,pct,km,lit,l100,xl,dk:dnhan});}
+  rows.push({ma,route,bsx:t.bsx,ngayvc:t.ngayvc,ngaynhan:t.ngaynhan,ngaygiao:t.ngaygiao,tx:t.orders[0].tx1,sodon,dthu,dau,ure,vetc,luong,phuphi,tongcp,conlai,pct,km,dauDo,lit,kmRong,dauRong,vetcRong,xl,dk:dnhan});}
  return rows;
 }
 
@@ -178,13 +180,13 @@ function render(){
  const a=keyStr(document.getElementById('f1').value),b=keyStr(document.getElementById('f2').value),x=document.getElementById('f3').value;
  const rows=RAW.filter(r=>r.dk>=a&&r.dk<=b&&(x==='TẤT CẢ'||r.bsx===x));
  const S=k=>rows.reduce((s,r)=>s+(r[k]||0),0);
- const dthu=S('dthu'),cp=S('tongcp'),conlai=S('conlai'),km=S('km'),lit=S('lit'),sodon=S('sodon');
- const tot=[['SỐ CHUYẾN',rows.length],['SỐ ĐƠN',sodon],['DOANH THU',fmt(dthu)],['TỔNG CP',fmt(cp)],['DT CÒN LẠI',fmt(conlai)],['% CÒN LẠI',dthu?pf(conlai/dthu):'—'],['KM',fmt(km)],['TIÊU HAO(L)',fmt(lit)]];
+ const dthu=S('dthu'),cp=S('tongcp'),conlai=S('conlai'),km=S('km'),lit=S('lit'),sodon=S('sodon'),kmRong=S('kmRong'),dauRong=S('dauRong');
+ const tot=[['SỐ CHUYẾN',rows.length],['SỐ ĐƠN',sodon],['DOANH THU',fmt(dthu)],['TỔNG CP',fmt(cp)],['DT CÒN LẠI',fmt(conlai)],['% CÒN LẠI',dthu?pf(conlai/dthu):'—'],['KM',fmt(km)],['LÍT ĐỔ',fmt(lit)],['KM RỖNG',fmt(kmRong)],['DẦU RỖNG',fmt(dauRong)]];
  document.getElementById('tot').innerHTML=tot.map(t=>`<div class="card"><div class="l">${t[0]}</div><div class="v">${t[1]}</div></div>`).join('');
  document.getElementById('tb').innerHTML=rows.map(r=>{const neg=r.conlai<0?' neg':'';
-  return `<tr><td class="ma mono">${esc(r.ma)}</td><td class="route" title="${esc(r.route)}">${esc(r.route)}</td><td>${r.bsx}</td><td>${fmtd(r.ngayvc)}</td><td>${fmtd(r.ngaynhan)}</td><td>${fmtd(r.ngaygiao)}</td><td>${esc(r.tx)}</td><td class="n">${r.sodon}</td>
-  <td class="n">${fmt(r.dthu)}</td><td class="n">${fmt(r.dau)}</td><td class="n">${fmt(r.ure)}</td><td class="n">${fmt(r.vetc)}</td><td class="n">${fmt(r.vetcRong)}</td><td class="n">${fmt(r.luong)}</td><td class="n">${fmt(r.phuphi)}</td>
-  <td class="n">${fmt(r.tongcp)}</td><td class="n${neg}">${fmt(r.conlai)}</td><td class="n${neg}">${pf(r.pct)}</td><td class="n">${fmt(r.km)}</td><td class="n">${d1(r.lit)}</td><td class="n">${d1(r.km*DM/100)}</td><td class="n${(r.lit-r.km*DM/100)>0?' neg':''}">${d1(r.lit-r.km*DM/100)}</td><td class="n">${d1(r.l100)}</td>
+  return `<tr><td class="ma mono">${esc(r.ma)}</td><td class="route" title="${esc(r.route)}">${esc(r.route)}</td><td>${r.bsx}</td><td>${fmtd(r.ngaynhan)}</td><td>${fmtd(r.ngayvc)}</td><td>${fmtd(r.ngaygiao)}</td><td>${esc(r.tx)}</td><td class="n">${r.sodon}</td>
+  <td class="n cDT">${fmt(r.dthu)}</td><td class="n">${fmt(r.dau)}</td><td class="n">${fmt(r.ure)}</td><td class="n">${fmt(r.vetc)}</td><td class="n">${fmt(r.luong)}</td><td class="n">${fmt(r.phuphi)}</td>
+  <td class="n">${fmt(r.tongcp)}</td><td class="n cHQ${neg}">${fmt(r.conlai)}</td><td class="n cHQ${neg}">${pf(r.pct)}</td><td class="n cDM">${fmt(r.km)}</td><td class="n cDM">${fmt(r.dauDo)}</td><td class="n cDM">${d1(r.lit)}</td><td class="n cDM">${d1(r.km*DM/100)}</td><td class="n cDM${(r.lit-r.km*DM/100)>0?' neg':''}">${d1(r.lit-r.km*DM/100)}</td><td class="n cRO">${fmt(r.kmRong)}</td><td class="n cRO">${fmt(r.dauRong)}</td><td class="n cRO">${fmt(r.vetcRong)}</td>
   <td><span class="pill ${cls(r.xl)}">${r.xl}</span></td></tr>`;}).join('');
  document.getElementById('cnt').textContent='Hiển thị '+rows.length+' chuyến';
 }
