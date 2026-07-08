@@ -166,7 +166,7 @@ function initFilters(){
  f3.innerHTML='<option>TẤT CẢ</option>'+bsx.map(b=>`<option>${b}</option>`).join('');
  const ks=RAW.map(r=>r.dk).filter(Boolean);const mn=Math.min(...ks),mx=Math.max(...ks);
  const iso=k=>`${Math.floor(k/10000)}-${String(Math.floor(k/100)%100).padStart(2,'0')}-${String(k%100).padStart(2,'0')}`;
- if(!document.getElementById('f1').value){document.getElementById('f1').value=iso(mn);document.getElementById('f2').value=iso(mx);}
+ if(!document.getElementById('f1').value){const _n=new Date();const _fm=`${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-01`;document.getElementById('f1').value=_fm;document.getElementById('f2').value=iso(mx);}
 }
 function fmt(n){return n==null?'':Math.round(n).toLocaleString('vi-VN');}
 function pf(n){return (n*100).toFixed(1)+'%';}
