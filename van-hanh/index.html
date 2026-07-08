@@ -51,7 +51,7 @@ a.home{display:inline-block;margin-bottom:8px;color:var(--ac);text-decoration:no
  <div class="tot" id="tot"></div>
  <div class="tblwrap"><table><thead><tr>
   <th>MÃ CHUYẾN</th><th>LỘ TRÌNH</th><th>BSX</th><th>NGÀY VC</th><th>NGÀY NHẬN</th><th>NGÀY HT</th><th>TÀI XẾ</th><th>SỐ ĐƠN</th>
-  <th>DOANH THU</th><th>DẦU</th><th>URE</th><th>VETC</th><th>LƯƠNG</th><th>PHỤ PHÍ</th><th>TỔNG CP</th><th>DT CÒN LẠI</th><th>% CÒN LẠI</th><th>KM</th><th>LÍT ĐỔ</th><th>ĐM(L)</th><th>CHÊNH(L)</th><th>L/100KM</th><th>XẾP LOẠI</th>
+  <th>DOANH THU</th><th>DẦU</th><th>URE</th><th>VETC</th><th>VETC RỖNG</th><th>LƯƠNG</th><th>PHỤ PHÍ</th><th>TỔNG CP</th><th>DT CÒN LẠI</th><th>% CÒN LẠI</th><th>KM</th><th>LÍT ĐỔ</th><th>ĐM(L)</th><th>CHÊNH(L)</th><th>L/100KM</th><th>XẾP LOẠI</th>
  </tr></thead><tbody id="tb"></tbody></table></div>
  <div class="cnt" id="cnt"></div>
 </div>
@@ -128,6 +128,8 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
  const seq={};const rows=[];
  // Gán mỗi lần đổ dầu cho chuyến (cùng BSX) có odo-cuối nhỏ nhất mà >= odo lần đổ → gồm cả lần đổ chuẩn bị đầu chuyến, không trùng sang chuyến khác
  const dauMap=new Map();{const byB={};for(const t of trips){if(t.km2>0)(byB[t.bsx]=byB[t.bsx]||[]).push(t);}for(const b in byB){const arr=byB[b].sort((a,z)=>a.km2-z.km2);for(let i=0;i<arr.length;i++){arr[i]._lo=i>0?arr[i-1].km2:(arr[i].km1||0);}}for(const x of DAU){const arr=byB[x.bsx];if(!arr)continue;let pick=null;for(const t of arr){if(x.odo<=t.km2&&x.odo>t._lo){pick=t;break;}}if(!pick)continue;const cur=dauMap.get(pick)||{tien:0,lit:0};cur.tien+=x.tien;cur.lit+=x.lit;dauMap.set(pick,cur);}}
+ // mốc giờ mỗi chuyến (đến kho → hoàn thành) + mốc chuyến kế của xe (cho VETC rỗng)
+ {const byB={};for(const t of trips){const ds=Math.min(...t.orders.map(o=>dtm(o.ngaynhan,o.giodenkho)).filter(Boolean));const de=Math.max(...t.orders.map(o=>dtm(o.ngaygiao||o.ngaynhan,o.gioht)));t.dstart=isFinite(ds)?ds:0;t.dend=isFinite(de)&&de?de:t.dstart;if(t.dstart)(byB[t.bsx]=byB[t.bsx]||[]).push(t);}for(const b in byB){const arr=byB[b].sort((a,z)=>a.dstart-z.dstart);for(let i=0;i<arr.length;i++){arr[i]._dnext=i+1<arr.length?arr[i+1].dstart:0;}}}
  for(const t of trips){const d=t.ngayvc||t.ngaynhan;if(!d)continue;
   let tua=(t.tua||'').trim();if(/^\d+(\.\d+)?$/.test(tua))tua=tua.endsWith('.0')?tua.slice(0,-2):tua.replace('.',',');
   const dd=String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0');
@@ -142,8 +144,8 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
   const _dg=dauMap.get(t)||{tien:0,lit:0};let dau=_dg.tien,lit=_dg.lit;
   const sumRange=(arr)=>arr.reduce((s,x)=>s+((x.bsx===t.bsx&&x.d>=dnhan&&x.d<=dgiao)?x.tien:0),0);
   const ure=sumRange(URE),cpk=sumRange(CPK);
-  const _dts=Math.min(...t.orders.map(o=>dtm(o.ngaynhan,o.giodenkho)).filter(Boolean)),_dte=Math.max(...t.orders.map(o=>dtm(o.ngaygiao||o.ngaynhan,o.gioht)));
-  const vetc=VETC.reduce((s,x)=>s+((x.bsx===t.bsx&&x.dt>=_dts&&x.dt<=_dte)?x.tien:0),0)/1.08;
+  const vetc=VETC.reduce((s,x)=>s+((x.bsx===t.bsx&&x.dt>=t.dstart&&x.dt<=t.dend)?x.tien:0),0)/1.08;
+  const vetcRong=t._dnext?VETC.reduce((s,x)=>s+((x.bsx===t.bsx&&x.dt>t.dend&&x.dt<t._dnext)?x.tien:0),0)/1.08:0;
   const luong=Math.max(0,...t.orders.map(o=>o.luong||0));
   const phuphi=t.orders.reduce((s,o)=>s+(o.bocxep||0)+(o.tc||0)+(o.ps||0),0);
   const dthu=t.orders.reduce((s,o)=>s+(o.dthu||0),0);
@@ -152,7 +154,7 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
   const conlai=dthu-tongcp;const pct=dthu?conlai/dthu:0;
   const l100=km?lit/km*100:0;
   const xl=pct>=0.4?'Tốt':pct>=0.2?'Đạt':'Kém';
-  rows.push({ma,route,bsx:t.bsx,ngayvc:t.ngayvc,ngaynhan:t.ngaynhan,ngaygiao:t.ngaygiao,tx:t.orders[0].tx1,sodon,dthu,dau,ure,vetc,luong,phuphi,tongcp,conlai,pct,km,lit,l100,xl,dk:dnhan});}
+  rows.push({ma,route,bsx:t.bsx,ngayvc:t.ngayvc,ngaynhan:t.ngaynhan,ngaygiao:t.ngaygiao,tx:t.orders[0].tx1,sodon,dthu,dau,ure,vetc,vetcRong,luong,phuphi,tongcp,conlai,pct,km,lit,l100,xl,dk:dnhan});}
  return rows;
 }
 
@@ -181,7 +183,7 @@ function render(){
  document.getElementById('tot').innerHTML=tot.map(t=>`<div class="card"><div class="l">${t[0]}</div><div class="v">${t[1]}</div></div>`).join('');
  document.getElementById('tb').innerHTML=rows.map(r=>{const neg=r.conlai<0?' neg':'';
   return `<tr><td class="ma mono">${esc(r.ma)}</td><td class="route" title="${esc(r.route)}">${esc(r.route)}</td><td>${r.bsx}</td><td>${fmtd(r.ngayvc)}</td><td>${fmtd(r.ngaynhan)}</td><td>${fmtd(r.ngaygiao)}</td><td>${esc(r.tx)}</td><td class="n">${r.sodon}</td>
-  <td class="n">${fmt(r.dthu)}</td><td class="n">${fmt(r.dau)}</td><td class="n">${fmt(r.ure)}</td><td class="n">${fmt(r.vetc)}</td><td class="n">${fmt(r.luong)}</td><td class="n">${fmt(r.phuphi)}</td>
+  <td class="n">${fmt(r.dthu)}</td><td class="n">${fmt(r.dau)}</td><td class="n">${fmt(r.ure)}</td><td class="n">${fmt(r.vetc)}</td><td class="n">${fmt(r.vetcRong)}</td><td class="n">${fmt(r.luong)}</td><td class="n">${fmt(r.phuphi)}</td>
   <td class="n">${fmt(r.tongcp)}</td><td class="n${neg}">${fmt(r.conlai)}</td><td class="n${neg}">${pf(r.pct)}</td><td class="n">${fmt(r.km)}</td><td class="n">${d1(r.lit)}</td><td class="n">${d1(r.km*DM/100)}</td><td class="n${(r.lit-r.km*DM/100)>0?' neg':''}">${d1(r.lit-r.km*DM/100)}</td><td class="n">${d1(r.l100)}</td>
   <td><span class="pill ${cls(r.xl)}">${r.xl}</span></td></tr>`;}).join('');
  document.getElementById('cnt').textContent='Hiển thị '+rows.length+' chuyến';
