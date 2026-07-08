@@ -51,7 +51,7 @@ a.home{display:inline-block;margin-bottom:8px;color:var(--ac);text-decoration:no
  <div class="tot" id="tot"></div>
  <div class="tblwrap"><table><thead><tr>
   <th>MÃ CHUYẾN</th><th>LỘ TRÌNH</th><th>BSX</th><th>NGÀY VC</th><th>NGÀY NHẬN</th><th>NGÀY HT</th><th>TÀI XẾ</th><th>SỐ ĐƠN</th>
-  <th>DOANH THU</th><th>DẦU</th><th>URE</th><th>VETC</th><th>LƯƠNG</th><th>PHỤ PHÍ</th><th>TỔNG CP</th><th>DT CÒN LẠI</th><th>% CÒN LẠI</th><th>KM</th><th>TIÊU HAO(L)</th><th>ĐM(L)</th><th>CHÊNH(L)</th><th>L/100KM</th><th>XẾP LOẠI</th>
+  <th>DOANH THU</th><th>DẦU</th><th>URE</th><th>VETC</th><th>LƯƠNG</th><th>PHỤ PHÍ</th><th>TỔNG CP</th><th>DT CÒN LẠI</th><th>% CÒN LẠI</th><th>KM</th><th>LÍT ĐỔ</th><th>ĐM(L)</th><th>CHÊNH(L)</th><th>L/100KM</th><th>XẾP LOẠI</th>
  </tr></thead><tbody id="tb"></tbody></table></div>
  <div class="cnt" id="cnt"></div>
 </div>
@@ -126,8 +126,6 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
  const seq={};const rows=[];
  // Gán mỗi lần đổ dầu cho chuyến (cùng BSX) có odo-cuối nhỏ nhất mà >= odo lần đổ → gồm cả lần đổ chuẩn bị đầu chuyến, không trùng sang chuyến khác
  const dauMap=new Map();{const byB={};for(const t of trips){if(t.km2>0)(byB[t.bsx]=byB[t.bsx]||[]).push(t);}for(const b in byB){const arr=byB[b].sort((a,z)=>a.km2-z.km2);for(let i=0;i<arr.length;i++){arr[i]._lo=i>0?arr[i-1].km2:(arr[i].km1||0);}}for(const x of DAU){const arr=byB[x.bsx];if(!arr)continue;let pick=null;for(const t of arr){if(x.odo<=t.km2&&x.odo>t._lo){pick=t;break;}}if(!pick)continue;const cur=dauMap.get(pick)||{tien:0,lit:0};cur.tien+=x.tien;cur.lit+=x.lit;dauMap.set(pick,cur);}}
- // Date-coverage cho URE/VETC/CP khác: chuyến giữ phát sinh từ lúc bắt đầu tới khi chuyến kế của xe bắt đầu (gồm cả chặng về, tới khi hoàn thành)
- {const byB={};for(const t of trips){t._ds=key(t.ngayvc||t.ngaynhan);if(t._ds)(byB[t.bsx]=byB[t.bsx]||[]).push(t);}for(const b in byB){const arr=byB[b].sort((a,z)=>a._ds-z._ds);for(let i=0;i<arr.length;i++){arr[i]._de=i+1<arr.length?arr[i+1]._ds:99999999;}}}
  for(const t of trips){const d=t.ngayvc||t.ngaynhan;if(!d)continue;
   let tua=(t.tua||'').trim();if(/^\d+(\.\d+)?$/.test(tua))tua=tua.endsWith('.0')?tua.slice(0,-2):tua.replace('.',',');
   const dd=String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0');
@@ -140,8 +138,8 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
   const km=(t.km1&&t.km2&&t.km2>t.km1&&t.km2-t.km1<=SPAN)?(t.km2-t.km1):0;
   // dau: theo odo-cuối chuyến gần nhất (gồm lần đổ đầu chuyến)
   const _dg=dauMap.get(t)||{tien:0,lit:0};let dau=_dg.tien,lit=_dg.lit;
-  const sumRange=(arr)=>arr.reduce((s,x)=>s+((x.bsx===t.bsx&&x.d>=(t._ds||dnhan)&&x.d<(t._de||99999999))?x.tien:0),0);
-  const ure=sumRange(URE),vetc=sumRange(VETC),cpk=sumRange(CPK);
+  const sumRange=(arr)=>arr.reduce((s,x)=>s+((x.bsx===t.bsx&&x.d>=dnhan&&x.d<=dgiao)?x.tien:0),0);
+  const ure=sumRange(URE),vetc=sumRange(VETC)/1.08,cpk=sumRange(CPK);
   const luong=Math.max(0,...t.orders.map(o=>o.luong||0));
   const phuphi=t.orders.reduce((s,o)=>s+(o.bocxep||0)+(o.tc||0)+(o.ps||0),0);
   const dthu=t.orders.reduce((s,o)=>s+(o.dthu||0),0);
