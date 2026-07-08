@@ -60,6 +60,7 @@ a.home{display:inline-block;margin-bottom:8px;color:var(--ac);text-decoration:no
 const SID_ORD='1c5HtmjEDWYnRvJXQS8OcAJaRUkSWF5ICAmcJjOl80QQ', GID_ORD='872982324';
 const SID_CP='1mRA8DoTp51DfU2kkk2ZnMnejVkM3vweGHHD2sO67gxw';
 const gU=(id,q)=>`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&${q}`;
+const eU=(id,gid)=>`https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
 function parseCSV(t){const r=[];let f='',row=[],q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}else{if(c==='"')q=true;else if(c===','){row.push(f);f='';}else if(c==='\n'){row.push(f);r.push(row);row=[];f='';}else if(c==='\r'){}else f+=c;}}if(f.length||row.length){row.push(f);r.push(row);}return r;}
 function vnum(s){if(s==null)return 0;s=String(s).trim();if(!s)return 0;s=s.replace(/\./g,'').replace(/,/g,'.').replace(/[^0-9.\-]/g,'');const n=parseFloat(s);return isNaN(n)?0:n;}
 function vdate(s){if(!s)return null;const m=String(s).match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);if(!m)return null;return new Date(+m[3],+m[2]-1,+m[1]);}
@@ -77,7 +78,7 @@ async function load(){
  document.getElementById('status').textContent='Đang tải dữ liệu từ Google Sheet…';
  try{
   const [ord,dau,ure,vetc,cpk]=await Promise.all([
-   fetchTxt(gU(SID_ORD,'gid='+GID_ORD)),
+   fetchTxt(eU(SID_ORD,GID_ORD)),
    fetchTxt(gU(SID_CP,'tq='+encodeURIComponent('select B,C,F,H,J where B is not null')+'&sheet=NHAP_DAU')),
    fetchTxt(gU(SID_CP,'tq='+encodeURIComponent('select B,C,J where B is not null')+'&sheet=NHAP_URE')),
    fetchTxt(gU(SID_CP,'tq='+encodeURIComponent('select C,J,K,L,M,N,O,P where C is not null')+'&sheet=NHAP_VETC')),
