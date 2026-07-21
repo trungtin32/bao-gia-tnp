@@ -275,7 +275,7 @@ function renderT4(rows,prevRows){
   document.getElementById('to').addEventListener('change',()=>{clearPreset();render();});
   document.getElementById('basis').addEventListener('change',render);
   document.querySelectorAll('#presets button').forEach(b=>b.addEventListener('click',()=>{clearPreset();b.classList.add('on');const p=b.dataset.p;
-    if(p==='cur')setRange(...monthRange(0));else if(p==='prev')setRange(...monthRange(-1));else if(p==='jun6')setRange('2026-06-01','2026-06-30');else setRange(mn,mx);}));
+    if(p==='cur')setRange(...monthRange(0));else if(p==='prev')setRange(...monthRange(-1));else if(p==='jun6')setRange('2026-06-01','2026-06-30');else{const[amn,amx]=bounds();setRange(amn,amx);}}));
   document.querySelector('#presets button[data-p="cur"]').classList.add('on');
   setRange(...monthRange(0));
   document.getElementById('reload').addEventListener('click',()=>{clearPreset();document.querySelector('#presets button[data-p="cur"]').classList.add('on');setRange(...monthRange(0));loadLive();});
