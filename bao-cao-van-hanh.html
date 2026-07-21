@@ -105,7 +105,12 @@ table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--b
     <div class="card"><h2><span class="tag">BẢNG 5</span> Theo nghiệp vụ</h2><div class="scroll"><table class="t" id="t5"></table></div></div>
   </div>
 
-  <div class="card"><h2><span class="tag">BẢNG 4</span> Doanh thu &amp; công nợ theo khách hàng</h2><p class="cap">Hiện khách hàng có phát sinh doanh thu trong kỳ và/hoặc còn nợ lũy tiến (từ các kỳ trước), kèm so sánh doanh thu cùng kỳ, sắp xếp theo doanh thu trong kỳ giảm dần.</p><div class="scroll"><table class="t" id="t4"></table></div></div>
+  <div class="card"><h2><span class="tag">BẢNG 4</span> Doanh thu &amp; công nợ theo khách hàng</h2><p class="cap">Hiện khách hàng có phát sinh doanh thu trong kỳ và/hoặc còn nợ lũy tiến (từ các kỳ trước), kèm so sánh doanh thu cùng kỳ, sắp xếp theo doanh thu trong kỳ giảm dần.</p>
+    <div style="display:flex;gap:8px;align-items:center;margin:2px 0 12px;flex-wrap:wrap">
+      <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em">Lọc khách hàng</label>
+      <select id="t4cust" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;color:var(--ink);min-width:240px"><option value="">— Tất cả khách hàng —</option></select>
+    </div>
+    <div class="scroll"><table class="t" id="t4"></table></div></div>
 
   <div class="footnote">Nguồn: “ĐƠN HÀNG_LỊCH XE_2026” (đơn hàng) + “NHẬP CHI PHÍ 2026” (dầu theo ngày). VETC/Lương/Ure/BD-SC lấy theo tháng từ DASHBOARD_VH_v2. Cập nhật 20/06/2026.</div>
 </div>
@@ -144,6 +149,7 @@ const F1=n=>new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(n||0
 const pct=(a,b)=>b?a/b*100:0;
 const paid=s=>(s||'').trim().toLowerCase()==='đã thanh toán';
 let chV=null,chN=null;
+let T4_ROWS=[],T4_PREVROWS=[];
 const barLabels={id:'barLabels',afterDatasetsDraw(c){const ctx=c.ctx;const d0=c.data.datasets[0].data;ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';c.data.datasets.forEach((ds,di)=>{const meta=c.getDatasetMeta(di);if(meta.hidden)return;meta.data.forEach((el,i)=>{const v=ds.data[i];if(!v)return;ctx.fillStyle=di===0?'#0f6e8c':'#0b7d74';if(di===0){ctx.font='700 9.5px -apple-system,Segoe UI,Arial';ctx.fillText(F(v/1e6)+'M',el.x,el.y-2);}else{ctx.font='600 9px -apple-system,Segoe UI,Arial';ctx.fillText(F(v/1e6)+'M·'+F1(pct(v,d0[i]))+'%',el.x,el.y-2);}});});ctx.restore();}};
 const pieLabels={id:'pieLabels',afterDatasetsDraw(c){const ctx=c.ctx;const ds=c.data.datasets[0];const tot=ds.data.reduce((a,b)=>a+b,0);const meta=c.getDatasetMeta(0);ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';meta.data.forEach((el,i)=>{const v=ds.data[i];const p=tot?v/tot*100:0;if(p<3.5)return;const P=el.getProps(['startAngle','endAngle','innerRadius','outerRadius','x','y'],true);const a=(P.startAngle+P.endAngle)/2;const r=(P.innerRadius+P.outerRadius)/2;const lx=P.x+Math.cos(a)*r,ly=P.y+Math.sin(a)*r;ctx.fillStyle='#fff';ctx.font='700 11px -apple-system,Segoe UI,Arial';ctx.fillText(F1(p)+'%',lx,ly-6);ctx.font='600 9px -apple-system,Segoe UI,Arial';ctx.fillText(F(v/1e6)+'M',lx,ly+6);});ctx.restore();}};
 function effDate(o,b){if(b==='nhan')return o.ngayNhan||o.ngayVC||o.ngayGiao;if(b==='giao')return o.ngayGiao||o.ngayVC||o.ngayNhan;return o.ngayVC||o.ngayNhan;}
@@ -250,10 +256,11 @@ function drawNV(arr){const ctx=document.getElementById('chNV');if(chN)chN.destro
    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},tooltip:{callbacks:{label:c=>c.label+': '+F(c.parsed)+' đ ('+F1(pct(c.parsed,c.dataset.data.reduce((a,b)=>a+b,0)))+'%)'}}}}});
 }
 function renderT4(rows,prevRows){
+  T4_ROWS=rows;T4_PREVROWS=prevRows;
   const allByCust=groupBy(ORDERS,o=>o.khach||'(không tên)');
   const curByCust=groupBy(rows,o=>o.khach||'(không tên)');
   const prevByCust=groupBy(prevRows||[],o=>o.khach||'(không tên)');
-  let arr=Object.keys(allByCust).map(kh=>{
+  let arrAll=Object.keys(allByCust).map(kh=>{
     const a=curByCust[kh]||[];
     const dt=a.reduce((s,o)=>s+o.cuoc,0);
     const thu=a.filter(o=>paid(o.ttCongNo)).reduce((s,o)=>s+o.cuoc,0);
@@ -263,17 +270,31 @@ function renderT4(rows,prevRows){
     const pdt=pa.reduce((s,o)=>s+o.cuoc,0);
     return{kh,n:a.length,dt,thu,con,debtAll,pdt};
   });
-  arr=arr.filter(x=>x.debtAll>0||x.dt>0);
-  arr.sort((x,y)=>y.dt-x.dt);
+  const sel=document.getElementById('t4cust');
+  if(sel){
+    const keep=sel.value;
+    const names=Object.keys(allByCust).sort((a,b)=>a.localeCompare(b,'vi'));
+    sel.innerHTML='<option value="">— Tất cả khách hàng —</option>'+names.map(n=>'<option value="'+n.replace(/"/g,'&quot;')+'">'+n+'</option>').join('');
+    if(names.includes(keep))sel.value=keep;
+  }
+  const selVal=sel?sel.value:'';
+  let arr;
+  if(selVal){
+    arr=arrAll.filter(x=>x.kh===selVal);
+  }else{
+    arr=arrAll.filter(x=>x.debtAll>0||x.dt>0);
+    arr.sort((x,y)=>y.dt-x.dt);
+  }
   const T=arr.reduce((s,x)=>({n:s.n+x.n,dt:s.dt+x.dt,thu:s.thu+x.thu,con:s.con+x.con,debtAll:s.debtAll+x.debtAll,pdt:s.pdt+x.pdt}),{n:0,dt:0,thu:0,con:0,debtAll:0,pdt:0});
   document.getElementById('t4').innerHTML='<thead><tr><th class="l">Khách hàng</th><th>Đơn (kỳ)</th><th>Doanh thu (kỳ)</th><th>Doanh thu cùng kỳ</th><th>So cùng kỳ</th><th>Đã thu (kỳ)</th><th>Còn phải thu (kỳ)</th><th>% Thu (kỳ)</th><th>Nợ lũy tiến (toàn bộ)</th></tr></thead><tbody>'+
     arr.map(x=>'<tr><td class="l">'+x.kh+'</td><td>'+x.n+'</td><td>'+F(x.dt)+'</td><td>'+F(x.pdt)+'</td><td>'+cmpHtml(x.dt,x.pdt)+'</td><td>'+F(x.thu)+'</td><td>'+(x.con>0?'<span class="pill p-bad">'+F(x.con)+'</span>':'0')+'</td><td>'+F1(pct(x.thu,x.dt))+'%</td><td>'+(x.debtAll>0?'<span class="pill p-warn">'+F(x.debtAll)+'</span>':'0')+'</td></tr>').join('')+
-    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+F(T.dt)+'</td><td>'+F(T.pdt)+'</td><td>'+cmpHtml(T.dt,T.pdt)+'</td><td>'+F(T.thu)+'</td><td>'+F(T.con)+'</td><td>'+F1(pct(T.thu,T.dt))+'%</td><td>'+F(T.debtAll)+'</td></tr></tfoot>';
+    '</tbody>'+(selVal?'':'<tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+F(T.dt)+'</td><td>'+F(T.pdt)+'</td><td>'+cmpHtml(T.dt,T.pdt)+'</td><td>'+F(T.thu)+'</td><td>'+F(T.con)+'</td><td>'+F1(pct(T.thu,T.dt))+'%</td><td>'+F(T.debtAll)+'</td></tr></tfoot>');
 }
 (function(){const[mn,mx]=bounds();document.getElementById('from').min='2026-01-01';document.getElementById('from').max='2026-12-31';document.getElementById('to').min='2026-01-01';document.getElementById('to').max='2026-12-31';
   document.getElementById('from').addEventListener('change',()=>{clearPreset();render();});
   document.getElementById('to').addEventListener('change',()=>{clearPreset();render();});
   document.getElementById('basis').addEventListener('change',render);
+  document.getElementById('t4cust').addEventListener('change',()=>renderT4(T4_ROWS,T4_PREVROWS));
   document.querySelectorAll('#presets button').forEach(b=>b.addEventListener('click',()=>{clearPreset();b.classList.add('on');const p=b.dataset.p;
     if(p==='cur')setRange(...monthRange(0));else if(p==='prev')setRange(...monthRange(-1));else if(p==='jun6')setRange('2026-06-01','2026-06-30');else{const[amn,amx]=bounds();setRange(amn,amx);}}));
   document.querySelector('#presets button[data-p="cur"]').classList.add('on');
