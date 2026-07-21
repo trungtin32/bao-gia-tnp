@@ -105,7 +105,7 @@ table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--b
     <div class="card"><h2><span class="tag">BẢNG 5</span> Theo nghiệp vụ</h2><div class="scroll"><table class="t" id="t5"></table></div></div>
   </div>
 
-  <div class="card"><h2><span class="tag">BẢNG 4</span> Doanh thu &amp; công nợ theo khách hàng</h2><p class="cap">Hiện khách hàng còn nợ lũy tiến và/hoặc có phát sinh doanh thu trong kỳ đang lọc, sắp xếp theo doanh thu trong kỳ giảm dần.</p><div class="scroll"><table class="t" id="t4"></table></div></div>
+  <div class="card"><h2><span class="tag">BẢNG 4</span> Doanh thu &amp; công nợ theo khách hàng</h2><p class="cap">Hiện khách hàng còn nợ lũy tiến và/hoặc có phát sinh doanh thu trong kỳ này hay cùng kỳ tháng trước, kèm so sánh doanh thu cùng kỳ, sắp xếp theo doanh thu trong kỳ giảm dần.</p><div class="scroll"><table class="t" id="t4"></table></div></div>
 
   <div class="footnote">Nguồn: “ĐƠN HÀNG_LỊCH XE_2026” (đơn hàng) + “NHẬP CHI PHÍ 2026” (dầu theo ngày). VETC/Lương/Ure/BD-SC lấy theo tháng từ DASHBOARD_VH_v2. Cập nhật 20/06/2026.</div>
 </div>
@@ -169,7 +169,7 @@ function render(){
   document.getElementById('rangeline').innerHTML='Kỳ: '+f.split('-').reverse().join('/')+' → '+t.split('-').reverse().join('/')+' · '+cur.n+' đơn'+
     ' <span style="color:#9ca3af;font-weight:400">· So cùng kỳ tháng trước ('+pf.split('-').reverse().join('/')+' → '+pt.split('-').reverse().join('/')+', '+prev.n+' đơn)</span>';
   const fx=fixActive();
-  renderKPI(cur,prev,fx); renderT1(cur,prev,fx); renderT2(cur.rows,f,t,fx); renderT3(cur.rows); renderT5(cur.rows); renderT4(cur.rows);
+  renderKPI(cur,prev,fx); renderT1(cur,prev,fx); renderT2(cur.rows,f,t,fx); renderT3(cur.rows); renderT5(cur.rows); renderT4(cur.rows,prev.rows);
 }
 function groupBy(a,k){const m={};a.forEach(o=>{const x=k(o);(m[x]=m[x]||[]).push(o);});return m;}
 function fixSum(key,active){if(!active)return 0;let s=0;for(const b in MFIX)s+=MFIX[b][key]||0;return s;}
@@ -249,23 +249,26 @@ function drawNV(arr){const ctx=document.getElementById('chNV');if(chN)chN.destro
   chN=new Chart(ctx,{type:'doughnut',plugins:[pieLabels],data:{labels:arr.map(x=>x.nv),datasets:[{data:arr.map(x=>x.dt),backgroundColor:['#0f6e8c','#13a89e','#5bb7a8','#86c5b0','#f0a04b','#c98a5a','#b0b8c0'],borderColor:'#fff',borderWidth:2}]},
    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}},tooltip:{callbacks:{label:c=>c.label+': '+F(c.parsed)+' đ ('+F1(pct(c.parsed,c.dataset.data.reduce((a,b)=>a+b,0)))+'%)'}}}}});
 }
-function renderT4(rows){
+function renderT4(rows,prevRows){
   const allByCust=groupBy(ORDERS,o=>o.khach||'(không tên)');
   const curByCust=groupBy(rows,o=>o.khach||'(không tên)');
+  const prevByCust=groupBy(prevRows||[],o=>o.khach||'(không tên)');
   let arr=Object.keys(allByCust).map(kh=>{
     const a=curByCust[kh]||[];
     const dt=a.reduce((s,o)=>s+o.cuoc,0);
     const thu=a.filter(o=>paid(o.ttCongNo)).reduce((s,o)=>s+o.cuoc,0);
     const con=dt-thu;
     const debtAll=allByCust[kh].filter(o=>!paid(o.ttCongNo)).reduce((s,o)=>s+o.cuoc,0);
-    return{kh,n:a.length,dt,thu,con,debtAll};
+    const pa=prevByCust[kh]||[];
+    const pdt=pa.reduce((s,o)=>s+o.cuoc,0);
+    return{kh,n:a.length,dt,thu,con,debtAll,pdt};
   });
-  arr=arr.filter(x=>x.debtAll>0||x.dt>0);
+  arr=arr.filter(x=>x.debtAll>0||x.dt>0||x.pdt>0);
   arr.sort((x,y)=>y.dt-x.dt);
-  const T=arr.reduce((s,x)=>({n:s.n+x.n,dt:s.dt+x.dt,thu:s.thu+x.thu,con:s.con+x.con,debtAll:s.debtAll+x.debtAll}),{n:0,dt:0,thu:0,con:0,debtAll:0});
-  document.getElementById('t4').innerHTML='<thead><tr><th class="l">Khách hàng</th><th>Đơn (kỳ)</th><th>Doanh thu (kỳ)</th><th>Đã thu (kỳ)</th><th>Còn phải thu (kỳ)</th><th>% Thu (kỳ)</th><th>Nợ lũy tiến (toàn bộ)</th></tr></thead><tbody>'+
-    arr.map(x=>'<tr><td class="l">'+x.kh+'</td><td>'+x.n+'</td><td>'+F(x.dt)+'</td><td>'+F(x.thu)+'</td><td>'+(x.con>0?'<span class="pill p-bad">'+F(x.con)+'</span>':'0')+'</td><td>'+F1(pct(x.thu,x.dt))+'%</td><td>'+(x.debtAll>0?'<span class="pill p-warn">'+F(x.debtAll)+'</span>':'0')+'</td></tr>').join('')+
-    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+F(T.dt)+'</td><td>'+F(T.thu)+'</td><td>'+F(T.con)+'</td><td>'+F1(pct(T.thu,T.dt))+'%</td><td>'+F(T.debtAll)+'</td></tr></tfoot>';
+  const T=arr.reduce((s,x)=>({n:s.n+x.n,dt:s.dt+x.dt,thu:s.thu+x.thu,con:s.con+x.con,debtAll:s.debtAll+x.debtAll,pdt:s.pdt+x.pdt}),{n:0,dt:0,thu:0,con:0,debtAll:0,pdt:0});
+  document.getElementById('t4').innerHTML='<thead><tr><th class="l">Khách hàng</th><th>Đơn (kỳ)</th><th>Doanh thu (kỳ)</th><th>Doanh thu cùng kỳ</th><th>So cùng kỳ</th><th>Đã thu (kỳ)</th><th>Còn phải thu (kỳ)</th><th>% Thu (kỳ)</th><th>Nợ lũy tiến (toàn bộ)</th></tr></thead><tbody>'+
+    arr.map(x=>'<tr><td class="l">'+x.kh+'</td><td>'+x.n+'</td><td>'+F(x.dt)+'</td><td>'+F(x.pdt)+'</td><td>'+cmpHtml(x.dt,x.pdt)+'</td><td>'+F(x.thu)+'</td><td>'+(x.con>0?'<span class="pill p-bad">'+F(x.con)+'</span>':'0')+'</td><td>'+F1(pct(x.thu,x.dt))+'%</td><td>'+(x.debtAll>0?'<span class="pill p-warn">'+F(x.debtAll)+'</span>':'0')+'</td></tr>').join('')+
+    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+F(T.dt)+'</td><td>'+F(T.pdt)+'</td><td>'+cmpHtml(T.dt,T.pdt)+'</td><td>'+F(T.thu)+'</td><td>'+F(T.con)+'</td><td>'+F1(pct(T.thu,T.dt))+'%</td><td>'+F(T.debtAll)+'</td></tr></tfoot>';
 }
 (function(){const[mn,mx]=bounds();document.getElementById('from').min='2026-01-01';document.getElementById('from').max='2026-12-31';document.getElementById('to').min='2026-01-01';document.getElementById('to').max='2026-12-31';
   document.getElementById('from').addEventListener('change',()=>{clearPreset();render();});
