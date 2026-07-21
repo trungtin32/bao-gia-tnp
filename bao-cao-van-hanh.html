@@ -105,7 +105,7 @@ table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--b
     <div class="card"><h2><span class="tag">BẢNG 5</span> Theo nghiệp vụ</h2><div class="scroll"><table class="t" id="t5"></table></div></div>
   </div>
 
-  <div class="card"><h2><span class="tag">BẢNG 4</span> Doanh thu &amp; công nợ theo khách hàng</h2><p class="cap">Chỉ hiện khách hàng còn nợ lũy tiến (chưa thanh toán), sắp xếp theo doanh thu trong kỳ giảm dần, để tập trung thu hồi.</p><div class="scroll"><table class="t" id="t4"></table></div></div>
+  <div class="card"><h2><span class="tag">BẢNG 4</span> Doanh thu &amp; công nợ theo khách hàng</h2><p class="cap">Hiện khách hàng còn nợ lũy tiến và/hoặc có phát sinh doanh thu trong kỳ đang lọc, sắp xếp theo doanh thu trong kỳ giảm dần.</p><div class="scroll"><table class="t" id="t4"></table></div></div>
 
   <div class="footnote">Nguồn: “ĐƠN HÀNG_LỊCH XE_2026” (đơn hàng) + “NHẬP CHI PHÍ 2026” (dầu theo ngày). VETC/Lương/Ure/BD-SC lấy theo tháng từ DASHBOARD_VH_v2. Cập nhật 20/06/2026.</div>
 </div>
@@ -260,7 +260,7 @@ function renderT4(rows){
     const debtAll=allByCust[kh].filter(o=>!paid(o.ttCongNo)).reduce((s,o)=>s+o.cuoc,0);
     return{kh,n:a.length,dt,thu,con,debtAll};
   });
-  arr=arr.filter(x=>x.debtAll>0);
+  arr=arr.filter(x=>x.debtAll>0||x.dt>0);
   arr.sort((x,y)=>y.dt-x.dt);
   const T=arr.reduce((s,x)=>({n:s.n+x.n,dt:s.dt+x.dt,thu:s.thu+x.thu,con:s.con+x.con,debtAll:s.debtAll+x.debtAll}),{n:0,dt:0,thu:0,con:0,debtAll:0});
   document.getElementById('t4').innerHTML='<thead><tr><th class="l">Khách hàng</th><th>Đơn (kỳ)</th><th>Doanh thu (kỳ)</th><th>Đã thu (kỳ)</th><th>Còn phải thu (kỳ)</th><th>% Thu (kỳ)</th><th>Nợ lũy tiến (toàn bộ)</th></tr></thead><tbody>'+
