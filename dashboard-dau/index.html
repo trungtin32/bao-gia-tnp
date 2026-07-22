@@ -137,6 +137,10 @@ function parseDate(v) {
   if (typeof v === 'number') return new Date((v - 25569) * 86400000);
   const m = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
   if (m) return new Date(+m[1], +m[2], +m[3]);
+  const d1 = String(v).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (d1) return new Date(+d1[3], +d1[2]-1, +d1[1]);
+  const d2 = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (d2) return new Date(+d2[1], +d2[2]-1, +d2[3]);
   return null;
 }
 
@@ -147,28 +151,51 @@ function fmt(n, dec=0) {
 
 function fmtM(n) { return (n/1e6).toFixed(2) + ' tr'; }
 
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') { if (text[i+1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\r' || c === '\n') {
+        if (c === '\r' && text[i+1] === '\n') i++;
+        row.push(field); field = '';
+        rows.push(row); row = [];
+      } else field += c;
+    }
+  }
+  if (row.length || field) { row.push(field); rows.push(row); }
+  return rows;
+}
+
 async function loadData() {
   const stat = document.getElementById('livestat');
-  stat.className = 'livestat load'; stat.textContent = 'â Äang táº£i...';
+  stat.className = 'livestat load'; stat.textContent = '● Đang tải...';
   try {
-    // DÃ¹ng range tÆ°á»ng minh Äá» trÃ¡nh bá» áº£nh hÆ°á»ng bá»i bá» lá»c trong sheet
-    const url = `https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?sheet=NHAP_DAU&range=A1:Z5000&tq=select%20*&headers=4`;
+    const url = `https://docs.google.com/spreadsheets/d/${SID}/export?format=csv&sheet=NHAP_DAU`;
     const res = await fetch(url, {cache: 'no-store'});
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    const json = JSON.parse(text.replace(/^[^{]*/, '').replace(/\);?\s*$/, ''));
-    allRows = json.table.rows.map(r => r.c.map(c => c ? c.v : null));
-    const plateCount = new Set(allRows.map(r=>r[COL.plate]).filter(Boolean)).size;
-    if (plateCount <= 1 && allRows.length > 10) {
-      stat.className = 'livestat err';
-      stat.textContent = 'â ï¸ Sheet Äang bá» lá»c â táº¯t bá» lá»c hoáº·c dÃ¹ng Filter View';
-    } else {
-      stat.className = 'livestat ok'; stat.textContent = 'â Trá»±c tiáº¿p';
-    }
+    const csvRows = parseCSV(text);
+    allRows = csvRows.slice(4).map(cols =>
+      cols.map(v => {
+        if (v === '' || v == null) return null;
+        const n = parseFloat(v.replace(/[, ]/g, ''));
+        return (!isNaN(n) && /^-?[\d\s,]+\.?\d*$/.test(v.trim())) ? n : v;
+      })
+    ).filter(r => r[COL.plate]);
+    stat.className = 'livestat ok'; stat.textContent = '● Trực tiếp';
     populateCarFilter();
     setDefaultDates();
     render();
   } catch(e) {
-    stat.className = 'livestat err'; stat.textContent = 'â Lá»i';
+    stat.className = 'livestat err'; stat.textContent = '● Lỗi';
     console.error(e);
   }
 }
