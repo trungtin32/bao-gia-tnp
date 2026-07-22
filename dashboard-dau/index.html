@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Dầu — TNP LOG</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root{color-scheme:light;--bg:#f4f6f9;--card:#fff;--ink:#1f2a37;--muted:#6b7280;--line:#e5e7eb;--oil:#d97706;--oil2:#f59e0b;--good:#15803d;--bad:#dc2626;--accent:#fff7ed}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:13.5px;line-height:1.45;padding:0 0 50px}
+.wrap{max-width:1240px;margin:0 auto;padding:18px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:14px}
+h1{font-size:21px;margin:0}
+.sub{color:var(--muted);font-size:12.5px;margin:2px 0 0}
+.filterbar{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;box-shadow:0 1px 2px rgba(0,0,0,.04);margin-bottom:14px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.fld input,.fld select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff;color:var(--ink)}
+.presets{display:flex;gap:6px;flex-wrap:wrap}
+.presets button{padding:7px 11px;border:1px solid var(--line);background:#fff;border-radius:999px;font-size:12.5px;cursor:pointer;color:var(--ink);transition:all .15s}
+.presets button:hover,.presets button.on{border-color:var(--oil);color:var(--oil);background:var(--accent)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.kpi .lab{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.kpi .val{font-size:22px;font-weight:700;margin-top:6px}
+.kpi .x{font-size:11.5px;margin-top:3px;color:var(--muted)}
+.kpi.oil{background:linear-gradient(135deg,var(--oil),var(--oil2));color:#fff;border:none}
+.kpi.oil .lab,.kpi.oil .x{color:rgba(255,255,255,.85)}
+.kpi.danger{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none}
+.kpi.danger .lab,.kpi.danger .x{color:rgba(255,255,255,.85)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .tag{font-size:11px;font-weight:700;color:#fff;background:var(--oil);padding:2px 8px;border-radius:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.chartbox{position:relative;height:300px}
+.scroll{overflow:auto;border:1px solid var(--line);border-radius:10px}
+table.t{width:100%;border-collapse:collapse;font-size:12.5px;min-width:760px}
+table.t th,table.t td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table.t th.l,table.t td.l{text-align:left}
+table.t thead th{background:var(--oil);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.02em;position:sticky;top:0;font-weight:600}
+table.t tbody tr:hover{background:var(--accent)}
+table.t tfoot td{font-weight:700;background:#fef3c7;border-top:2px solid var(--oil)}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:600}
+.p-good{background:#dcfce7;color:#166534}
+.p-bad{background:#fee2e2;color:#991b1b}
+.p-warn{background:#fef3c7;color:#92400e}
+.bar-wrap{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}
+.bar{height:7px;background:#e5e7eb;border-radius:4px;display:inline-block;width:55px;overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:4px;transition:width .3s}
+.livestat{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;display:inline-block;margin-right:6px}
+.livestat.ok{background:#dcfce7;color:#166534}
+.livestat.err{background:#fee2e2;color:#991b1b}
+.livestat.load{background:#fff7ed;color:#b45309}
+#reload{padding:5px 13px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:12.5px;cursor:pointer;color:var(--oil);font-weight:600}
+#reload:hover{border-color:var(--oil)}
+.warn-badge{background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:700}
+.home-btn{position:fixed;top:10px;left:12px;z-index:9999;background:#fff;border:1px solid #fed7aa;border-radius:8px;padding:6px 12px;box-shadow:0 1px 4px rgba(0,0,0,.1);color:var(--oil);font-weight:700;text-decoration:none;font-size:13px;font-family:system-ui,sans-serif}
+.home-btn:hover{background:var(--accent)}
+.rangeline{color:var(--muted);font-size:12px;margin-top:2px}
+</style>
+</head>
+<body>
+<a class="home-btn" href="../">← Trang chính</a>
+
+<div class="wrap" style="padding-top:48px">
+  <div class="head">
+    <div>
+      <h1>🛢️ Dashboard Dầu — TNP LOG</h1>
+      <div class="sub">Đọc trực tiếp từ Google Sheet · Tổng hợp theo xe · So sánh định mức khoán</div>
+      <div class="rangeline" id="rangeline"></div>
+    </div>
+    <div>
+      <span class="livestat load" id="livestat">● Đang tải...</span>
+      <button id="reload">⟳ Tải lại</button>
+    </div>
+  </div>
+
+  <div class="filterbar">
+    <div class="fld"><label>Từ ngày</label><input type="date" id="from"></div>
+    <div class="fld"><label>Đến ngày</label><input type="date" id="to"></div>
+    <div class="fld"><label>Xe (BSX)</label>
+      <select id="carFilter"><option value="">TẤT CẢ</option></select>
+    </div>
+    <div class="fld"><label>Chọn nhanh</label>
+      <div class="presets" id="presets">
+        <button data-p="cur">Tháng này</button>
+        <button data-p="prev">Tháng trước</button>
+        <button data-p="t6">Tháng 6</button>
+        <button data-p="t7">Tháng 7</button>
+        <button data-p="all">Toàn bộ</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <h2><span class="tag">BẢNG TỔNG HỢP</span> Định mức & Chi phí theo xe</h2>
+    <div class="scroll" id="tbl-wrap">
+      <table class="t" id="tbl"><tbody><tr><td style="text-align:left;color:var(--muted);padding:20px">Đang tải dữ liệu...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2><span class="tag">BIỂU ĐỒ</span> DM thực vs DM khoán (L/100km)</h2>
+      <div class="chartbox"><canvas id="chRate"></canvas></div>
+    </div>
+    <div class="card">
+      <h2><span class="tag">BIỂU ĐỒ</span> Chi phí dầu theo xe (triệu ₫)</h2>
+      <div class="chartbox"><canvas id="chCost"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SID = '1mRA8DoTp51DfU2kkk2ZnMnejVkM3vweGHHD2sO67gxw';
+// Định mức khoán cố định theo xe
+const DM_KHOAN = {
+  '50E-533.54': 16, '50H-260.74': 19.5, '50E-658.83': 23,
+  '50E-398.51': 10, '50H-903.08': 20, '50H-756.77': 20,
+  '50H-449.61': 20, '50E-673.32': 20, '50H-904.92': 20
+};
+// NHAP_DAU column indices (0-based, after 4-row header)
+// B=1:date, C=2:plate, D=3:driver, H=7:litDo, I=8:donGia,
+// J=9:thanhTien, K=10:kmChay, N=13:tieuThu, O=14:dmThuc,
+// Q=16:canhBao, R=17:dmKhoan
+const COL = {date:1,plate:2,driver:3,litDo:7,donGia:8,cost:9,km:10,tieuThu:13,dmThuc:14,canhBao:16,dmKhoan:17};
+
+let allRows = [];
+let chartRate = null, chartCost = null;
+
+function parseDate(v) {
+  if (!v) return null;
+  if (typeof v === 'number') return new Date((v - 25569) * 86400000);
+  const m = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
+  if (m) return new Date(+m[1], +m[2], +m[3]);
+  return null;
+}
+
+function fmt(n, dec=0) {
+  if (n == null || n === '' || isNaN(n)) return '—';
+  return Number(n).toLocaleString('vi-VN', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+}
+
+function fmtM(n) { return (n/1e6).toFixed(2) + ' tr'; }
+
+async function loadData() {
+  const stat = document.getElementById('livestat');
+  stat.className = 'livestat load'; stat.textContent = '● Đang tải...';
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?sheet=NHAP_DAU&tq=select%20*&headers=4`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.replace(/^[^{]*/, '').replace(/\);?\s*$/, ''));
+    allRows = json.table.rows.map(r => r.c.map(c => c ? c.v : null));
+    stat.className = 'livestat ok'; stat.textContent = '● Trực tiếp';
+    populateCarFilter();
+    setDefaultDates();
+    render();
+  } catch(e) {
+    stat.className = 'livestat err'; stat.textContent = '● Lỗi';
+    console.error(e);
+  }
+}
+
+function populateCarFilter() {
+  const plates = [...new Set(allRows.map(r => r[COL.plate]).filter(Boolean))].sort();
+  const sel = document.getElementById('carFilter');
+  // Clear existing options except first
+  while (sel.options.length > 1) sel.remove(1);
+  plates.forEach(p => { const o = new Option(p, p); sel.add(o); });
+}
+
+function setDefaultDates() {
+  const now = new Date();
+  document.getElementById('from').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  document.getElementById('to').value = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+}
+
+function getFiltered() {
+  const fromStr = document.getElementById('from').value;
+  const toStr = document.getElementById('to').value;
+  const carVal = document.getElementById('carFilter').value;
+  const from = fromStr ? new Date(fromStr) : null;
+  const to = toStr ? new Date(toStr + 'T23:59:59') : null;
+  return allRows.filter(r => {
+    const d = parseDate(r[COL.date]);
+    if (!d) return false;
+    if (from && d < from) return false;
+    if (to && d > to) return false;
+    if (carVal && r[COL.plate] !== carVal) return false;
+    return true;
+  });
+}
+
+function aggregate(rows) {
+  const map = {};
+  rows.forEach(r => {
+    const plate = r[COL.plate]; if (!plate) return;
+    if (!map[plate]) map[plate] = {
+      plate, driver: r[COL.driver],
+      trips: 0, litDo: 0, km: 0, tieuThu: 0, kmForTieu: 0,
+      cost: 0, warns: 0, dmKhoan: DM_KHOAN[plate] || 20
+    };
+    const e = map[plate];
+    e.trips++;
+    e.litDo += (r[COL.litDo] || 0);
+    e.cost += (r[COL.cost] || 0);
+    const km = r[COL.km] || 0;
+    e.km += km;
+    // Only count tiêu thụ when both km and tiêu thụ are valid
+    const tt = r[COL.tieuThu] || 0;
+    if (km > 0 && tt > 0) {
+      e.tieuThu += tt;
+      e.kmForTieu += km;
+    }
+    const cb = r[COL.canhBao];
+    if (cb && String(cb).trim().length > 0) e.warns++;
+  });
+
+  return Object.values(map).map(e => {
+    // Prefer tiêu thụ-based rate if we have enough data, else fall back to lít đổ / km
+    if (e.kmForTieu > 50) {
+      e.dmThuc = e.tieuThu / e.kmForTieu * 100;
+    } else if (e.km > 50) {
+      e.dmThuc = e.litDo / e.km * 100;
+    } else {
+      e.dmThuc = null;
+    }
+    e.chenh = e.dmThuc != null ? (e.dmThuc - e.dmKhoan) : null;
+    e.costPerKm = e.km > 0 ? (e.cost / e.km * 100) : null;
+    return e;
+  }).sort((a,b) => b.cost - a.cost);
+}
+
+function render() {
+  const filtered = getFiltered();
+  const vehs = aggregate(filtered);
+
+  // Update range line
+  const from = document.getElementById('from').value;
+  const to = document.getElementById('to').value;
+  const car = document.getElementById('carFilter').value;
+  document.getElementById('rangeline').textContent =
+    `Kỳ: ${from || '—'} → ${to || '—'} · ${car || 'Tất cả xe'} · ${filtered.length} lần đổ`;
+
+  renderKPIs(vehs, filtered.length);
+  renderTable(vehs);
+  renderCharts(vehs);
+}
+
+function renderKPIs(vehs, rowCount) {
+  const totalCost = vehs.reduce((s,v) => s + v.cost, 0);
+  const totalLit = vehs.reduce((s,v) => s + v.litDo, 0);
+  const totalKm = vehs.reduce((s,v) => s + v.km, 0);
+  const totalWarnVehs = vehs.filter(v => v.chenh != null && v.chenh > 0).length;
+  const totalWarnRows = vehs.reduce((s,v) => s + v.warns, 0);
+
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi oil">
+      <div class="lab">Tổng chi phí dầu</div>
+      <div class="val">${fmtM(totalCost)}</div>
+      <div class="x">${fmt(Math.round(totalCost))} ₫</div>
+    </div>
+    <div class="kpi">
+      <div class="lab">Tổng lít đổ</div>
+      <div class="val">${fmt(totalLit, 1)} L</div>
+      <div class="x">${rowCount} lần đổ · ${vehs.length} xe</div>
+    </div>
+    <div class="kpi">
+      <div class="lab">Tổng km ghi nhận</div>
+      <div class="val">${fmt(Math.round(totalKm))}</div>
+      <div class="x">km (tổng KM chạy được)</div>
+    </div>
+    <div class="kpi ${totalWarnVehs > 0 ? 'danger' : ''}">
+      <div class="lab">Xe vượt định mức</div>
+      <div class="val">${totalWarnVehs} / ${vehs.length} xe</div>
+      <div class="x">${totalWarnRows} lần cảnh báo trong kỳ</div>
+    </div>
+  `;
+}
+
+function renderTable(vehs) {
+  if (!vehs.length) {
+    document.getElementById('tbl-wrap').innerHTML =
+      '<div style="padding:20px;color:var(--muted)">Không có dữ liệu trong khoảng thời gian này.</div>';
+    return;
+  }
+
+  const totLit = vehs.reduce((s,v) => s + v.litDo, 0);
+  const totCost = vehs.reduce((s,v) => s + v.cost, 0);
+  const totKm = vehs.reduce((s,v) => s + v.km, 0);
+  const totTrips = vehs.reduce((s,v) => s + v.trips, 0);
+
+  let html = `<table class="t"><thead><tr>
+    <th class="l">Biển số</th>
+    <th class="l">Tài xế</th>
+    <th>Số lần</th>
+    <th>KM chạy</th>
+    <th>Lít đổ</th>
+    <th>DM thực</th>
+    <th>DM khoán</th>
+    <th>Chênh lệch</th>
+    <th>Chi phí (₫)</th>
+    <th>CP/100km</th>
+    <th>Cảnh báo</th>
+  </tr></thead><tbody>`;
+
+  const maxCost = Math.max(...vehs.map(v => v.cost), 1);
+
+  vehs.forEach(v => {
+    const chenh = v.chenh;
+    const pillCls = chenh == null ? '' : chenh > 2 ? 'p-bad' : chenh > 0 ? 'p-warn' : 'p-good';
+    const chenhStr = chenh == null ? '—' : (chenh > 0 ? '+' : '') + chenh.toFixed(2);
+    const dmStr = v.dmThuc != null ? v.dmThuc.toFixed(2) : '—';
+    const barColor = chenh == null ? '#94a3b8' : chenh > 2 ? '#ef4444' : chenh > 0 ? '#f59e0b' : '#22c55e';
+    const barPct = v.dmThuc ? Math.min(v.dmThuc / (v.dmKhoan * 1.5) * 100, 100) : 0;
+    const costBarPct = Math.round(v.cost / maxCost * 100);
+
+    html += `<tr>
+      <td class="l"><strong>${v.plate}</strong></td>
+      <td class="l" style="color:var(--muted)">${v.driver || '—'}</td>
+      <td>${v.trips}</td>
+      <td>${fmt(Math.round(v.km))}</td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar"><i style="width:${costBarPct}%;background:#d97706"></i></div>
+          ${fmt(v.litDo, 1)}
+        </div>
+      </td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar"><i style="width:${barPct}%;background:${barColor}"></i></div>
+          ${dmStr}
+        </div>
+      </td>
+      <td>${v.dmKhoan}</td>
+      <td><span class="pill ${pillCls}">${chenhStr}</span></td>
+      <td>${fmt(Math.round(v.cost))}</td>
+      <td>${v.costPerKm ? fmt(Math.round(v.costPerKm)) : '—'}</td>
+      <td>${v.warns > 0
+        ? `<span class="warn-badge">⚠ ${v.warns}</span>`
+        : '<span class="pill p-good">OK</span>'}</td>
+    </tr>`;
+  });
+
+  html += `</tbody><tfoot><tr>
+    <td class="l" colspan="2">TỔNG CỘNG</td>
+    <td>${fmt(totTrips)}</td>
+    <td>${fmt(Math.round(totKm))}</td>
+    <td>${fmt(totLit, 1)}</td>
+    <td colspan="3"></td>
+    <td>${fmt(Math.round(totCost))}</td>
+    <td colspan="2"></td>
+  </tr></tfoot></table>`;
+
+  document.getElementById('tbl-wrap').innerHTML = html;
+}
+
+function renderCharts(vehs) {
+  if (chartRate) { chartRate.destroy(); chartRate = null; }
+  if (chartCost) { chartCost.destroy(); chartCost = null; }
+  if (!vehs.length) return;
+
+  const labels = vehs.map(v => v.plate);
+  const dmThuc = vehs.map(v => v.dmThuc ? +v.dmThuc.toFixed(2) : null);
+  const dmKhoan = vehs.map(v => v.dmKhoan);
+  const barColors = vehs.map(v => v.chenh != null && v.chenh > 0 ? '#ef4444' : '#22c55e');
+  const costs = vehs.map(v => +(v.cost / 1e6).toFixed(2));
+
+  chartRate = new Chart(document.getElementById('chRate'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'DM thực (L/100km)', data: dmThuc, backgroundColor: barColors, borderRadius: 4, order: 2 },
+        { label: 'DM khoán', data: dmKhoan, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706',
+          borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#d97706', fill: false, order: 1 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { y: { beginAtZero: false, min: 0, title: { display: true, text: 'L/100km' } } }
+    }
+  });
+
+  chartCost = new Chart(document.getElementById('chCost'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: 'Chi phí (triệu ₫)', data: costs,
+        backgroundColor: '#d97706', borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, title: { display: true, text: 'Triệu ₫' } } }
+    }
+  });
+}
+
+// Preset date buttons
+document.getElementById('presets').addEventListener('click', e => {
+  const p = e.target.dataset && e.target.dataset.p;
+  if (!p) return;
+  const now = new Date();
+  let from, to;
+  if (p === 'cur') {
+    from = new Date(now.getFullYear(), now.getMonth(), 1);
+    to   = new Date(now.getFullYear(), now.getMonth()+1, 0);
+  } else if (p === 'prev') {
+    from = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    to   = new Date(now.getFullYear(), now.getMonth(), 0);
+  } else if (p === 't6') {
+    from = new Date(now.getFullYear(), 5, 1);
+    to   = new Date(now.getFullYear(), 5, 30);
+  } else if (p === 't7') {
+    from = new Date(now.getFullYear(), 6, 1);
+    to   = new Date(now.getFullYear(), 6, 31);
+  } else {
+    from = new Date(2024, 0, 1);
+    to   = new Date(now.getFullYear(), 11, 31);
+  }
+  document.getElementById('from').value = from.toISOString().slice(0,10);
+  document.getElementById('to').value   = to.toISOString().slice(0,10);
+  document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
+  render();
+});
+
+document.getElementById('from').addEventListener('change', render);
+document.getElementById('to').addEventListener('change', render);
+document.getElementById('carFilter').addEventListener('change', render);
+document.getElementById('reload').addEventListener('click', loadData);
+
+loadData();
+</script>
+</body>
+</html>
