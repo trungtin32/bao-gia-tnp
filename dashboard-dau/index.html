@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Dầu — TNP LOG</title>
+<title>Dashboard Dáº§u â TNP LOG</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
 <style>
 :root{color-scheme:light;--bg:#f4f6f9;--card:#fff;--ink:#1f2a37;--muted:#6b7280;--line:#e5e7eb;--oil:#d97706;--oil2:#f59e0b;--good:#15803d;--bad:#dc2626;--accent:#fff7ed}
@@ -62,34 +62,34 @@ table.t tfoot td{font-weight:700;background:#fef3c7;border-top:2px solid var(--o
 </style>
 </head>
 <body>
-<a class="home-btn" href="../">← Trang chính</a>
+<a class="home-btn" href="../">â Trang chÃ­nh</a>
 
 <div class="wrap" style="padding-top:48px">
   <div class="head">
     <div>
-      <h1>🛢️ Dashboard Dầu — TNP LOG</h1>
-      <div class="sub">Đọc trực tiếp từ Google Sheet · Tổng hợp theo xe · So sánh định mức khoán</div>
+      <h1>ð¢ï¸ Dashboard Dáº§u â TNP LOG</h1>
+      <div class="sub">Äá»c trá»±c tiáº¿p tá»« Google Sheet Â· Tá»ng há»£p theo xe Â· So sÃ¡nh Äá»nh má»©c khoÃ¡n</div>
       <div class="rangeline" id="rangeline"></div>
     </div>
     <div>
-      <span class="livestat load" id="livestat">● Đang tải...</span>
-      <button id="reload">⟳ Tải lại</button>
+      <span class="livestat load" id="livestat">â Äang táº£i...</span>
+      <button id="reload">â³ Táº£i láº¡i</button>
     </div>
   </div>
 
   <div class="filterbar">
-    <div class="fld"><label>Từ ngày</label><input type="date" id="from"></div>
-    <div class="fld"><label>Đến ngày</label><input type="date" id="to"></div>
+    <div class="fld"><label>Tá»« ngÃ y</label><input type="date" id="from"></div>
+    <div class="fld"><label>Äáº¿n ngÃ y</label><input type="date" id="to"></div>
     <div class="fld"><label>Xe (BSX)</label>
-      <select id="carFilter"><option value="">TẤT CẢ</option></select>
+      <select id="carFilter"><option value="">Táº¤T Cáº¢</option></select>
     </div>
-    <div class="fld"><label>Chọn nhanh</label>
+    <div class="fld"><label>Chá»n nhanh</label>
       <div class="presets" id="presets">
-        <button data-p="cur">Tháng này</button>
-        <button data-p="prev">Tháng trước</button>
-        <button data-p="t6">Tháng 6</button>
-        <button data-p="t7">Tháng 7</button>
-        <button data-p="all">Toàn bộ</button>
+        <button data-p="cur">ThÃ¡ng nÃ y</button>
+        <button data-p="prev">ThÃ¡ng trÆ°á»c</button>
+        <button data-p="t6">ThÃ¡ng 6</button>
+        <button data-p="t7">ThÃ¡ng 7</button>
+        <button data-p="all">ToÃ n bá»</button>
       </div>
     </div>
   </div>
@@ -97,19 +97,19 @@ table.t tfoot td{font-weight:700;background:#fef3c7;border-top:2px solid var(--o
   <div class="kpis" id="kpis"></div>
 
   <div class="card">
-    <h2><span class="tag">BẢNG TỔNG HỢP</span> Định mức & Chi phí theo xe</h2>
+    <h2><span class="tag">Báº¢NG Tá»NG Há»¢P</span> Äá»nh má»©c & Chi phÃ­ theo xe</h2>
     <div class="scroll" id="tbl-wrap">
-      <table class="t" id="tbl"><tbody><tr><td style="text-align:left;color:var(--muted);padding:20px">Đang tải dữ liệu...</td></tr></tbody></table>
+      <table class="t" id="tbl"><tbody><tr><td style="text-align:left;color:var(--muted);padding:20px">Äang táº£i dá»¯ liá»u...</td></tr></tbody></table>
     </div>
   </div>
 
   <div class="grid2">
     <div class="card">
-      <h2><span class="tag">BIỂU ĐỒ</span> DM thực vs DM khoán (L/100km)</h2>
+      <h2><span class="tag">BIá»U Äá»</span> DM thá»±c vs DM khoÃ¡n (L/100km)</h2>
       <div class="chartbox"><canvas id="chRate"></canvas></div>
     </div>
     <div class="card">
-      <h2><span class="tag">BIỂU ĐỒ</span> Chi phí dầu theo xe (triệu ₫)</h2>
+      <h2><span class="tag">BIá»U Äá»</span> Chi phÃ­ dáº§u theo xe (triá»u â«)</h2>
       <div class="chartbox"><canvas id="chCost"></canvas></div>
     </div>
   </div>
@@ -117,7 +117,7 @@ table.t tfoot td{font-weight:700;background:#fef3c7;border-top:2px solid var(--o
 
 <script>
 const SID = '1mRA8DoTp51DfU2kkk2ZnMnejVkM3vweGHHD2sO67gxw';
-// Định mức khoán cố định theo xe
+// Äá»nh má»©c khoÃ¡n cá» Äá»nh theo xe
 const DM_KHOAN = {
   '50E-533.54': 16, '50H-260.74': 19.5, '50E-658.83': 23,
   '50E-398.51': 10, '50H-903.08': 20, '50H-756.77': 20,
@@ -141,7 +141,7 @@ function parseDate(v) {
 }
 
 function fmt(n, dec=0) {
-  if (n == null || n === '' || isNaN(n)) return '—';
+  if (n == null || n === '' || isNaN(n)) return 'â';
   return Number(n).toLocaleString('vi-VN', {minimumFractionDigits:dec, maximumFractionDigits:dec});
 }
 
@@ -149,19 +149,26 @@ function fmtM(n) { return (n/1e6).toFixed(2) + ' tr'; }
 
 async function loadData() {
   const stat = document.getElementById('livestat');
-  stat.className = 'livestat load'; stat.textContent = '● Đang tải...';
+  stat.className = 'livestat load'; stat.textContent = 'â Äang táº£i...';
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?sheet=NHAP_DAU&tq=select%20*&headers=4`;
-    const res = await fetch(url);
+    // DÃ¹ng range tÆ°á»ng minh Äá» trÃ¡nh bá» áº£nh hÆ°á»ng bá»i bá» lá»c trong sheet
+    const url = `https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?sheet=NHAP_DAU&range=A1:Z5000&tq=select%20*&headers=4`;
+    const res = await fetch(url, {cache: 'no-store'});
     const text = await res.text();
     const json = JSON.parse(text.replace(/^[^{]*/, '').replace(/\);?\s*$/, ''));
     allRows = json.table.rows.map(r => r.c.map(c => c ? c.v : null));
-    stat.className = 'livestat ok'; stat.textContent = '● Trực tiếp';
+    const plateCount = new Set(allRows.map(r=>r[COL.plate]).filter(Boolean)).size;
+    if (plateCount <= 1 && allRows.length > 10) {
+      stat.className = 'livestat err';
+      stat.textContent = 'â ï¸ Sheet Äang bá» lá»c â táº¯t bá» lá»c hoáº·c dÃ¹ng Filter View';
+    } else {
+      stat.className = 'livestat ok'; stat.textContent = 'â Trá»±c tiáº¿p';
+    }
     populateCarFilter();
     setDefaultDates();
     render();
   } catch(e) {
-    stat.className = 'livestat err'; stat.textContent = '● Lỗi';
+    stat.className = 'livestat err'; stat.textContent = 'â Lá»i';
     console.error(e);
   }
 }
@@ -175,9 +182,10 @@ function populateCarFilter() {
 }
 
 function setDefaultDates() {
-  const now = new Date();
-  document.getElementById('from').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
-  document.getElementById('to').value = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+  // Máº·c Äá»nh: khÃ´ng giá»i háº¡n ngÃ y â hiá»n toÃ n bá» dá»¯ liá»u
+  document.getElementById('from').value = '';
+  document.getElementById('to').value = '';
+  document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', b.dataset.p === 'all'));
 }
 
 function getFiltered() {
@@ -211,7 +219,7 @@ function aggregate(rows) {
     e.cost += (r[COL.cost] || 0);
     const km = r[COL.km] || 0;
     e.km += km;
-    // Only count tiêu thụ when both km and tiêu thụ are valid
+    // Only count tiÃªu thá»¥ when both km and tiÃªu thá»¥ are valid
     const tt = r[COL.tieuThu] || 0;
     if (km > 0 && tt > 0) {
       e.tieuThu += tt;
@@ -222,7 +230,7 @@ function aggregate(rows) {
   });
 
   return Object.values(map).map(e => {
-    // Prefer tiêu thụ-based rate if we have enough data, else fall back to lít đổ / km
+    // Prefer tiÃªu thá»¥-based rate if we have enough data, else fall back to lÃ­t Äá» / km
     if (e.kmForTieu > 50) {
       e.dmThuc = e.tieuThu / e.kmForTieu * 100;
     } else if (e.km > 50) {
@@ -245,7 +253,7 @@ function render() {
   const to = document.getElementById('to').value;
   const car = document.getElementById('carFilter').value;
   document.getElementById('rangeline').textContent =
-    `Kỳ: ${from || '—'} → ${to || '—'} · ${car || 'Tất cả xe'} · ${filtered.length} lần đổ`;
+    `Ká»³: ${from || 'â'} â ${to || 'â'} Â· ${car || 'Táº¥t cáº£ xe'} Â· ${filtered.length} láº§n Äá»`;
 
   renderKPIs(vehs, filtered.length);
   renderTable(vehs);
@@ -261,24 +269,24 @@ function renderKPIs(vehs, rowCount) {
 
   document.getElementById('kpis').innerHTML = `
     <div class="kpi oil">
-      <div class="lab">Tổng chi phí dầu</div>
+      <div class="lab">Tá»ng chi phÃ­ dáº§u</div>
       <div class="val">${fmtM(totalCost)}</div>
-      <div class="x">${fmt(Math.round(totalCost))} ₫</div>
+      <div class="x">${fmt(Math.round(totalCost))} â«</div>
     </div>
     <div class="kpi">
-      <div class="lab">Tổng lít đổ</div>
+      <div class="lab">Tá»ng lÃ­t Äá»</div>
       <div class="val">${fmt(totalLit, 1)} L</div>
-      <div class="x">${rowCount} lần đổ · ${vehs.length} xe</div>
+      <div class="x">${rowCount} láº§n Äá» Â· ${vehs.length} xe</div>
     </div>
     <div class="kpi">
-      <div class="lab">Tổng km ghi nhận</div>
+      <div class="lab">Tá»ng km ghi nháº­n</div>
       <div class="val">${fmt(Math.round(totalKm))}</div>
-      <div class="x">km (tổng KM chạy được)</div>
+      <div class="x">km (tá»ng KM cháº¡y ÄÆ°á»£c)</div>
     </div>
     <div class="kpi ${totalWarnVehs > 0 ? 'danger' : ''}">
-      <div class="lab">Xe vượt định mức</div>
+      <div class="lab">Xe vÆ°á»£t Äá»nh má»©c</div>
       <div class="val">${totalWarnVehs} / ${vehs.length} xe</div>
-      <div class="x">${totalWarnRows} lần cảnh báo trong kỳ</div>
+      <div class="x">${totalWarnRows} láº§n cáº£nh bÃ¡o trong ká»³</div>
     </div>
   `;
 }
@@ -286,7 +294,7 @@ function renderKPIs(vehs, rowCount) {
 function renderTable(vehs) {
   if (!vehs.length) {
     document.getElementById('tbl-wrap').innerHTML =
-      '<div style="padding:20px;color:var(--muted)">Không có dữ liệu trong khoảng thời gian này.</div>';
+      '<div style="padding:20px;color:var(--muted)">KhÃ´ng cÃ³ dá»¯ liá»u trong khoáº£ng thá»i gian nÃ y.</div>';
     return;
   }
 
@@ -296,17 +304,17 @@ function renderTable(vehs) {
   const totTrips = vehs.reduce((s,v) => s + v.trips, 0);
 
   let html = `<table class="t"><thead><tr>
-    <th class="l">Biển số</th>
-    <th class="l">Tài xế</th>
-    <th>Số lần</th>
-    <th>KM chạy</th>
-    <th>Lít đổ</th>
-    <th>DM thực</th>
-    <th>DM khoán</th>
-    <th>Chênh lệch</th>
-    <th>Chi phí (₫)</th>
+    <th class="l">Biá»n sá»</th>
+    <th class="l">TÃ i xáº¿</th>
+    <th>Sá» láº§n</th>
+    <th>KM cháº¡y</th>
+    <th>LÃ­t Äá»</th>
+    <th>DM thá»±c</th>
+    <th>DM khoÃ¡n</th>
+    <th>ChÃªnh lá»ch</th>
+    <th>Chi phÃ­ (â«)</th>
     <th>CP/100km</th>
-    <th>Cảnh báo</th>
+    <th>Cáº£nh bÃ¡o</th>
   </tr></thead><tbody>`;
 
   const maxCost = Math.max(...vehs.map(v => v.cost), 1);
@@ -314,15 +322,15 @@ function renderTable(vehs) {
   vehs.forEach(v => {
     const chenh = v.chenh;
     const pillCls = chenh == null ? '' : chenh > 2 ? 'p-bad' : chenh > 0 ? 'p-warn' : 'p-good';
-    const chenhStr = chenh == null ? '—' : (chenh > 0 ? '+' : '') + chenh.toFixed(2);
-    const dmStr = v.dmThuc != null ? v.dmThuc.toFixed(2) : '—';
+    const chenhStr = chenh == null ? 'â' : (chenh > 0 ? '+' : '') + chenh.toFixed(2);
+    const dmStr = v.dmThuc != null ? v.dmThuc.toFixed(2) : 'â';
     const barColor = chenh == null ? '#94a3b8' : chenh > 2 ? '#ef4444' : chenh > 0 ? '#f59e0b' : '#22c55e';
     const barPct = v.dmThuc ? Math.min(v.dmThuc / (v.dmKhoan * 1.5) * 100, 100) : 0;
     const costBarPct = Math.round(v.cost / maxCost * 100);
 
     html += `<tr>
       <td class="l"><strong>${v.plate}</strong></td>
-      <td class="l" style="color:var(--muted)">${v.driver || '—'}</td>
+      <td class="l" style="color:var(--muted)">${v.driver || 'â'}</td>
       <td>${v.trips}</td>
       <td>${fmt(Math.round(v.km))}</td>
       <td>
@@ -340,15 +348,15 @@ function renderTable(vehs) {
       <td>${v.dmKhoan}</td>
       <td><span class="pill ${pillCls}">${chenhStr}</span></td>
       <td>${fmt(Math.round(v.cost))}</td>
-      <td>${v.costPerKm ? fmt(Math.round(v.costPerKm)) : '—'}</td>
+      <td>${v.costPerKm ? fmt(Math.round(v.costPerKm)) : 'â'}</td>
       <td>${v.warns > 0
-        ? `<span class="warn-badge">⚠ ${v.warns}</span>`
+        ? `<span class="warn-badge">â  ${v.warns}</span>`
         : '<span class="pill p-good">OK</span>'}</td>
     </tr>`;
   });
 
   html += `</tbody><tfoot><tr>
-    <td class="l" colspan="2">TỔNG CỘNG</td>
+    <td class="l" colspan="2">Tá»NG Cá»NG</td>
     <td>${fmt(totTrips)}</td>
     <td>${fmt(Math.round(totKm))}</td>
     <td>${fmt(totLit, 1)}</td>
@@ -376,8 +384,8 @@ function renderCharts(vehs) {
     data: {
       labels,
       datasets: [
-        { label: 'DM thực (L/100km)', data: dmThuc, backgroundColor: barColors, borderRadius: 4, order: 2 },
-        { label: 'DM khoán', data: dmKhoan, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706',
+        { label: 'DM thá»±c (L/100km)', data: dmThuc, backgroundColor: barColors, borderRadius: 4, order: 2 },
+        { label: 'DM khoÃ¡n', data: dmKhoan, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706',
           borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#d97706', fill: false, order: 1 }
       ]
     },
@@ -392,13 +400,13 @@ function renderCharts(vehs) {
     type: 'bar',
     data: {
       labels,
-      datasets: [{ label: 'Chi phí (triệu ₫)', data: costs,
+      datasets: [{ label: 'Chi phÃ­ (triá»u â«)', data: costs,
         backgroundColor: '#d97706', borderRadius: 4 }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, title: { display: true, text: 'Triệu ₫' } } }
+      scales: { y: { beginAtZero: true, title: { display: true, text: 'Triá»u â«' } } }
     }
   });
 }
