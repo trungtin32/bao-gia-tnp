@@ -213,7 +213,7 @@ async function loadData() {
   // Method 2: gviz JSON — luôn hoạt động, nhưng bị ảnh hưởng bởi bộ lọc cơ bản Sheets
   if (!loaded) {
     try {
-      const gvizUrl = `https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:json&sheet=NHAP_DAU`;
+      const gvizUrl = `https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:json&range=NHAP_DAU!A:R&headers=4`;
       const res = await fetch(gvizUrl, {cache: 'no-store'});
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
