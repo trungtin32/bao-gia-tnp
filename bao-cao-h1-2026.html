@@ -88,34 +88,50 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);color:v
     <div class="card scroll"><table class="t" id="tMonth"></table></div>
   </div>
 
-  <h2 class="sec"><span class="tag">2</span> Cơ cấu doanh thu: Xe nhà vs Thương mại</h2>
+  <h2 class="sec"><span class="tag">2</span> Đối chiếu Kế hoạch doanh thu &amp; Chỉ tiêu khoán vận hành</h2>
+  <p class="cap">So với chỉ tiêu doanh thu theo tháng và định mức chi phí do công ty ban hành (Quý I, II/2026; định mức khoán áp dụng chính thức từ 01/06/2026).</p>
+  <div class="grid2">
+    <div class="card"><div class="chartbox"><canvas id="chPlan"></canvas></div></div>
+    <div class="card scroll"><table class="t" id="tPlan"></table></div>
+  </div>
+  <div class="card scroll" style="margin-top:14px"><table class="t" id="tKhoan"></table></div>
+
+  <h2 class="sec"><span class="tag">3</span> Biến động giá nhiên liệu &amp; tác động chi phí</h2>
+  <p class="cap">Chi phí nhiên liệu (dầu DO) đội xe nhà theo tháng, đối chiếu diễn biến giá dầu thị trường trong nước.</p>
+  <div class="grid2">
+    <div class="card"><div class="chartbox"><canvas id="chFuel"></canvas></div></div>
+    <div class="card" id="fuelNote" style="font-size:13px;line-height:1.75"></div>
+  </div>
+
+  <h2 class="sec"><span class="tag">4</span> Cơ cấu doanh thu: Xe nhà vs Thương mại</h2>
   <p class="cap">So sánh tỷ trọng và biên lợi nhuận giữa đội xe nhà (TNP LOG) và các đơn thuê ngoài (NCC thương mại).</p>
   <div class="grid2">
     <div class="card"><div class="chartbox"><canvas id="chOwn"></canvas></div></div>
     <div class="card scroll"><table class="t" id="tOwn"></table></div>
   </div>
 
-  <h2 class="sec"><span class="tag">3</span> Top 10 khách hàng theo doanh thu</h2>
+  <h2 class="sec"><span class="tag">5</span> Top 10 khách hàng theo doanh thu</h2>
   <p class="cap">10 khách hàng đóng góp doanh thu lớn nhất trong 6 tháng đầu năm.</p>
   <div class="grid2">
     <div class="card"><div class="chartbox"><canvas id="chCust"></canvas></div></div>
     <div class="card scroll"><table class="t" id="tCust"></table></div>
   </div>
 
-  <h2 class="sec"><span class="tag">4</span> Top nhà cung cấp thương mại</h2>
+  <h2 class="sec"><span class="tag">6</span> Top nhà cung cấp thương mại</h2>
   <p class="cap">Các đối tác NCC ngoài có doanh thu điều phối và biên lợi nhuận cao nhất.</p>
   <div class="card scroll"><table class="t" id="tNcc"></table></div>
 
-  <h2 class="sec"><span class="tag">5</span> Cơ cấu theo nghiệp vụ vận chuyển</h2>
-  <p class="cap">Tỷ trọng doanh thu theo từng loại hình nghiệp vụ (tuyến trục, hàng ghép, hàng biên...).</p>
+  <h2 class="sec"><span class="tag">7</span> Cơ cấu theo nghiệp vụ vận chuyển</h2>
+  <p class="cap">Tỷ trọng doanh thu theo từng loại hình nghiệp vụ (tuyến trục, hàng ghép, hàng biên...), đối chiếu tỷ trọng mục tiêu đã đăng ký.</p>
   <div class="card scroll"><table class="t" id="tNv"></table></div>
+  <div class="card scroll" style="margin-top:14px"><table class="t" id="tNvTarget"></table></div>
 
-  <h2 class="sec"><span class="tag">6</span> Lưu ý về dữ liệu</h2>
+  <h2 class="sec"><span class="tag">8</span> Lưu ý về dữ liệu</h2>
   <div class="note">
-    <b>Chi phí VETC (phí trạm thu phí tự động)</b> trong sheet nguồn chỉ được ghi nhận từ <b>01/04/2026</b> trở đi. Do đó, tổng chi phí và lãi gộp của các tháng 1, 2, 3/2026 trong báo cáo này <b>chưa bao gồm chi phí VETC thực tế</b> — lãi gộp các tháng này vì vậy có thể đang được thể hiện <b>cao hơn thực tế</b> so với các tháng từ tháng 4 trở đi. Khi so sánh xu hướng lợi nhuận giữa các tháng, cần cân nhắc yếu tố này thay vì kết luận toàn bộ mức sụt giảm là do hoạt động kinh doanh kém đi.
+    <b>Chi phí VETC (phí trạm thu phí tự động)</b> trong sheet nguồn chỉ được ghi nhận từ <b>01/04/2026</b> trở đi. Do đó, tổng chi phí và lãi gộp của các tháng 1, 2, 3/2026 trong báo cáo này <b>chưa bao gồm chi phí VETC thực tế</b> — lãi gộp các tháng này vì vậy có thể đang được thể hiện <b>cao hơn thực tế</b> so với các tháng từ tháng 4 trở đi. Khi so sánh xu hướng lợi nhuận giữa các tháng, cần cân nhắc yếu tố này thay vì kết luận toàn bộ mức sụt giảm là do hoạt động kinh doanh kém đi. Ngoài ra, định mức khoán chi phí (mục 2) chỉ chính thức áp dụng từ 01/06/2026 nên số liệu đối chiếu các tháng trước đó chỉ mang tính tham khảo; chỉ tiêu bảo dưỡng "1.500.000đ/tua" được quy đổi tạm theo mỗi lượt bảo dưỡng phát sinh ghi nhận trong sổ do chưa có dữ liệu số tua/chuyến khứ hồi riêng.
   </div>
 
-  <h2 class="sec"><span class="tag">7</span> Nhận định &amp; Khuyến nghị</h2>
+  <h2 class="sec"><span class="tag">9</span> Nhận định &amp; Khuyến nghị</h2>
   <div class="analysis" id="analysis"></div>
 
   <footer>
@@ -143,7 +159,28 @@ async function fetchLuong(src){const u=/^\d+$/.test(String(src))?'https://docs.g
 
 let ORDERS=[],FUEL=[],URE=[],BDDATA=[],CKDATA=[],VETCDATA=[],LUONGDATA=[];
 const F_FROM='2026-01-01', F_TO='2026-06-30';
-let chMonth=null,chOwn=null,chCust=null;
+let chMonth=null,chOwn=null,chCust=null,chPlan=null,chFuel=null;
+
+// Kế hoạch doanh thu & chỉ tiêu khoán do công ty ban hành, đăng ký từ đầu năm / áp dụng chính thức từ 01/06/2026
+const REV_TARGET={'2026-01':1150000000,'2026-02':1150000000,'2026-03':1150000000,'2026-04':1500000000,'2026-05':1500000000,'2026-06':1680000000};
+const REV_TARGET_H1=Object.values(REV_TARGET).reduce((a,b)=>a+b,0);
+const KHOAN={ure:1,vetc:10,luongBacNam:20,luongNoiCanMien:35,baoduongPerTua:1500000};
+const NV_TARGET={'Vận tải trục nguyên chuyến':55,'Vận tải trục hàng ghép':35,'Nguyên chuyến nội miền':5,'Nguyên chuyến cận miền':5};
+function classifyNV(nv){
+  const s=(nv||'').toLowerCase();
+  if(s.includes('ghép'))return'Vận tải trục hàng ghép';
+  if(s.includes('nội miền'))return'Nguyên chuyến nội miền';
+  if(s.includes('cận miền'))return'Nguyên chuyến cận miền';
+  if(s.includes('trục')||s.includes('nguyên chuyến'))return'Vận tải trục nguyên chuyến';
+  return'Khác';
+}
+// Diễn biến giá dầu diesel bán lẻ trong nước quý 2/2026 (nguồn: điều hành giá của liên Bộ Công Thương - Tài chính)
+const OIL_NOTES=[
+  {d:'Cuối tháng 4/2026',t:'Giá dầu thế giới tăng vọt lên trên 120 USD/thùng, kéo giá bán lẻ trong nước lên vùng đỉnh quý.'},
+  {d:'28/05/2026',t:'Dầu diesel 0.05S bán lẻ ở mức không quá 27.651 đ/lít.'},
+  {d:'10/06/2026',t:'Điều chỉnh giảm 1.110 đ/lít.'},
+  {d:'25/06/2026',t:'Tiếp tục giảm mạnh 1.668 đ/lít, đưa dầu diesel về không quá 21.866 đ/lít — giá dầu thế giới lùi về vùng 95-100 USD/thùng.'},
+];
 
 function setStat(t,cls){const e=document.getElementById('livestat');e.textContent=t;e.className='livestat '+(cls||'');}
 
@@ -195,7 +232,49 @@ function render(){
     {type:'line',label:'Lãi gộp',data:perMonth.map(x=>x.lai),borderColor:'#dc2626',backgroundColor:'#dc2626',tension:.3,order:1}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+F(c.parsed.y)+' đ'}}},scales:{y:{ticks:{callback:v=>F(v/1e6)+'M'}}}}});
 
-  // Section 2: own vs commercial
+  // Section 2: kế hoạch doanh thu & chỉ tiêu khoán
+  const planArr=months.map((ym,i)=>{
+    const tgt=REV_TARGET[ym]||0, act=perMonth[i].rev;
+    return{ym,label:mLabels[i],tgt,act,dat:pct(act,tgt)};
+  });
+  const planT={tgt:REV_TARGET_H1,act:S.rev};
+  document.getElementById('tPlan').innerHTML='<thead><tr><th class="l">Tháng</th><th>KH doanh thu</th><th>TT doanh thu</th><th>Chênh lệch</th><th>% Đạt KH</th></tr></thead><tbody>'+
+    planArr.map(x=>'<tr><td class="l">'+x.label+'</td><td>'+F(x.tgt)+'</td><td>'+F(x.act)+'</td><td>'+(x.act>=x.tgt?'<span class="pill p-good">+'+F(x.act-x.tgt)+'</span>':'<span class="pill p-bad">'+F(x.act-x.tgt)+'</span>')+'</td><td>'+F1(x.dat)+'%</td></tr>').join('')+
+    '</tbody><tfoot><tr><td class="l">TỔNG H1</td><td>'+F(planT.tgt)+'</td><td>'+F(planT.act)+'</td><td>'+(planT.act>=planT.tgt?'<span class="pill p-good">+'+F(planT.act-planT.tgt)+'</span>':'<span class="pill p-bad">'+F(planT.act-planT.tgt)+'</span>')+'</td><td>'+F1(pct(planT.act,planT.tgt))+'%</td></tr></tfoot>';
+  if(chPlan)chPlan.destroy();
+  chPlan=new Chart(document.getElementById('chPlan'),{type:'bar',data:{labels:mLabels,datasets:[
+    {label:'Kế hoạch',data:planArr.map(x=>x.tgt),backgroundColor:'#cbd5e1',borderRadius:3},
+    {label:'Thực tế',data:planArr.map(x=>x.act),backgroundColor:'#0f6e8c',borderRadius:3}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+F(c.parsed.y)+' đ'}}},scales:{y:{ticks:{callback:v=>F(v/1e6)+'M'}}}}});
+
+  const ureAmt=sumRangeArr(URE,F_FROM,F_TO), vetcAmt=sumRangeArr(VETCDATA,F_FROM,F_TO), luongAmt=sumLuong(F_FROM,F_TO);
+  const ureRatio=pct(ureAmt,S.rev), vetcRatio=pct(vetcAmt,S.rev), luongRatio=pct(luongAmt,S.ownDT);
+  const bdRows=BDDATA.filter(x=>x.d>=F_FROM&&x.d<=F_TO), bdAmt=bdRows.reduce((s,x)=>s+x.a,0), bdAvg=bdRows.length?bdAmt/bdRows.length:0;
+  const khoanRows=[
+    ['Urê','≤ 1% doanh thu',F1(ureRatio)+'%',ureRatio<=1],
+    ['VETC (phí trạm thu phí)','≤ 10% doanh thu',F1(vetcRatio)+'%',vetcRatio<=10],
+    ['Lương lái xe (bình quân xe nhà)','20% (Bắc-Nam) / ≤ 35% (nội miền, cận miền)',F1(luongRatio)+'% (bình quân)',null],
+    ['Bảo dưỡng - sửa chữa','1.500.000 đ / tua',F(bdAvg)+' đ / lượt ('+bdRows.length+' lượt)',bdAvg<=1500000],
+  ];
+  document.getElementById('tKhoan').innerHTML='<thead><tr><th class="l">Chỉ tiêu khoán</th><th class="l">Định mức</th><th>Thực tế 6 tháng</th><th>Đánh giá</th></tr></thead><tbody>'+
+    khoanRows.map(x=>'<tr><td class="l">'+x[0]+'</td><td class="l">'+x[1]+'</td><td>'+x[2]+'</td><td>'+(x[3]===null?'<span class="pill p-warn">Bình quân — cần tách theo tuyến</span>':(x[3]?'<span class="pill p-good">Đạt định mức</span>':'<span class="pill p-bad">Vượt định mức</span>'))+'</td></tr>').join('')+'</tbody>';
+
+  // Section 3: biến động giá nhiên liệu
+  const fuelArr=months.map((ym,i)=>{
+    const f=ym+'-01', lastDay=new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate(), t=ym+'-'+String(lastDay).padStart(2,'0');
+    return{ym,label:mLabels[i],a:sumRangeArr(FUEL,f,t),rev:perMonth[i].rev};
+  });
+  if(chFuel)chFuel.destroy();
+  chFuel=new Chart(document.getElementById('chFuel'),{data:{labels:mLabels,datasets:[
+    {type:'bar',label:'Chi phí nhiên liệu',data:fuelArr.map(x=>x.a),backgroundColor:'#f59e0b',borderRadius:3,order:2,yAxisID:'y'},
+    {type:'line',label:'% Doanh thu',data:fuelArr.map(x=>pct(x.a,x.rev)),borderColor:'#0f6e8c',backgroundColor:'#0f6e8c',tension:.3,order:1,yAxisID:'y1'}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},tooltip:{callbacks:{label:c=>c.dataset.label+(c.dataset.yAxisID==='y1'?': '+F1(c.parsed.y)+'%':': '+F(c.parsed.y)+' đ')}}},scales:{y:{ticks:{callback:v=>F(v/1e6)+'M'}},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{callback:v=>v+'%'}}}}});
+  const peakIdx=fuelArr.reduce((m,x,i)=>x.a>fuelArr[m].a?i:m,0);
+  document.getElementById('fuelNote').innerHTML='<b>Diễn biến giá dầu thị trường (dầu diesel 0.05S bán lẻ trong nước):</b><ul style="margin:8px 0 12px;padding-left:18px">'+
+    OIL_NOTES.map(o=>'<li><b>'+o.d+':</b> '+o.t+'</li>').join('')+'</ul>'+
+    '<p style="margin:0">Chi phí nhiên liệu đội xe nhà cao nhất vào <b>'+fuelArr[peakIdx].label+'</b> ('+F(fuelArr[peakIdx].a)+' đ), trùng giai đoạn giá dầu thị trường ở vùng đỉnh (cuối tháng 4 - tháng 5). Sang tháng 6, giá dầu diesel bán lẻ giảm liên tiếp hai đợt (10/6 và 25/6, tổng cộng khoảng 2.778 đ/lít), góp phần giúp chi phí nhiên liệu hạ nhiệt — đây là yếu tố thị trường khách quan, không phải do thay đổi trong vận hành.</p>';
+
+  // Section 4: own vs commercial
   document.getElementById('tOwn').innerHTML='<thead><tr><th class="l">Nhóm</th><th>Số đơn</th><th>Doanh thu</th><th>Chi phí</th><th>Lãi gộp</th><th>% Lãi</th></tr></thead><tbody>'+
     '<tr><td class="l">Xe nhà (TNP LOG)</td><td>'+S.own.length+'</td><td>'+F(S.ownDT)+'</td><td>'+F(S.ownCP)+'</td><td>'+F(S.ownDT-S.ownCP)+'</td><td><span class="pill p-good">'+F1(pct(S.ownDT-S.ownCP,S.ownDT))+'%</span></td></tr>'+
     '<tr><td class="l">Thương mại (NCC ngoài)</td><td>'+S.comm.length+'</td><td>'+F(S.commDT)+'</td><td>'+F(S.commCP)+'</td><td>'+F(S.commDT-S.commCP)+'</td><td><span class="pill p-good">'+F1(pct(S.commDT-S.commCP,S.commDT))+'%</span></td></tr>'+
@@ -223,21 +302,40 @@ function render(){
   document.getElementById('tNv').innerHTML='<thead><tr><th class="l">Nghiệp vụ</th><th>Đơn</th><th>Doanh thu</th><th>% Tổng DT</th></tr></thead><tbody>'+
     nvArr.map(x=>'<tr><td class="l">'+x.nv+'</td><td>'+x.n+'</td><td>'+F(x.dt)+'</td><td>'+F1(pct(x.dt,S.rev))+'%</td></tr>').join('')+'</tbody>';
 
-  // Section 7: analysis (dynamic numbers)
+  const nvBucket={};
+  nvArr.forEach(x=>{const b=classifyNV(x.nv);nvBucket[b]=(nvBucket[b]||0)+x.dt;});
+  const nvTargetRows=Object.keys(NV_TARGET).map(b=>{
+    const act=nvBucket[b]||0, actPct=pct(act,S.rev), tgtPct=NV_TARGET[b];
+    return{b,actPct,tgtPct,diff:actPct-tgtPct};
+  });
+  document.getElementById('tNvTarget').innerHTML='<thead><tr><th class="l">Nhóm nghiệp vụ (theo mục tiêu đăng ký)</th><th>% Thực tế</th><th>% Mục tiêu</th><th>Chênh lệch</th></tr></thead><tbody>'+
+    nvTargetRows.map(x=>'<tr><td class="l">'+x.b+'</td><td>'+F1(x.actPct)+'%</td><td>'+F1(x.tgtPct)+'%</td><td>'+(Math.abs(x.diff)<=3?'<span class="pill p-good">Sát mục tiêu</span>':(x.diff>0?'<span class="pill p-warn">+'+F1(x.diff)+' đpt</span>':'<span class="pill p-bad">'+F1(x.diff)+' đpt</span>'))+'</td></tr>').join('')+'</tbody>';
+
+  // Section 9: analysis (dynamic numbers)
   const first=perMonth[0], last=perMonth[5];
   const laiDrop=first.lai-last.lai;
   const laiDropPct=first.lai?laiDrop/first.lai*100:0;
   const top3Share=pct(custArr.slice(0,3).reduce((s,x)=>s+x.dt,0),S.rev);
   const ownMargin=pct(S.ownDT-S.ownCP,S.ownDT), commMargin=pct(S.commDT-S.commCP,S.commDT);
+  const planDatPct=pct(planT.act,planT.tgt);
+  const nchuyenRow=nvTargetRows.find(x=>x.b==='Vận tải trục nguyên chuyến');
+  const ghepRow=nvTargetRows.find(x=>x.b==='Vận tải trục hàng ghép');
   document.getElementById('analysis').innerHTML=
-    '<h3>Xu hướng lợi nhuận</h3><p>Lãi gộp giảm liên tục từ '+F(first.lai)+' đ (tháng 1) xuống còn '+F(last.lai)+' đ (tháng 6), tương đương giảm '+F1(laiDropPct)+'%. Tuy nhiên cần lưu ý chi phí VETC của quý 1 chưa được ghi nhận đầy đủ (xem mục 6), nên mức giảm thực tế có thể thấp hơn con số này. Dù vậy, xu hướng giảm dần qua các tháng 4-6 (dữ liệu VETC đầy đủ) là tín hiệu cần theo dõi sát.</p>'+
+    '<h3>Mức độ hoàn thành kế hoạch doanh thu</h3><p>Doanh thu thực tế 6 tháng đạt '+F(planT.act)+' đ trên kế hoạch '+F(planT.tgt)+' đ, tương đương <b>'+F1(planDatPct)+'%</b> chỉ tiêu đăng ký đầu năm ('+(planDatPct>=100?'vượt':'chưa đạt')+' kế hoạch khoảng '+F(Math.abs(planT.act-planT.tgt))+' đ). '+(planDatPct<100?'Cần đẩy mạnh khai thác thêm sản lượng/khách hàng trong 6 tháng cuối năm để bù phần hụt.':'Đây là nền tảng tốt để đặt mục tiêu tăng trưởng cao hơn cho 6 tháng cuối năm.')+'</p>'+
+    '<h3>Xu hướng lợi nhuận</h3><p>Lãi gộp giảm liên tục từ '+F(first.lai)+' đ (tháng 1) xuống còn '+F(last.lai)+' đ (tháng 6), tương đương giảm '+F1(laiDropPct)+'%. Tuy nhiên cần lưu ý chi phí VETC của quý 1 chưa được ghi nhận đầy đủ (xem mục 8), nên mức giảm thực tế có thể thấp hơn con số này. Dù vậy, xu hướng giảm dần qua các tháng 4-6 (dữ liệu VETC đầy đủ) là tín hiệu cần theo dõi sát.</p>'+
+    '<h3>Tác động giá nhiên liệu</h3><p>Giai đoạn giá dầu thị trường tăng vọt lên trên 120 USD/thùng (cuối tháng 4) trùng với thời điểm chi phí nhiên liệu và tổng chi phí vận hành tăng cao — một phần nguyên nhân sụt giảm lãi gộp quý 2 đến từ yếu tố thị trường khách quan này, không hoàn toàn do vận hành nội bộ. Sang tháng 6, giá dầu diesel bán lẻ giảm khoảng 2.778 đ/lít qua hai đợt điều chỉnh, là yếu tố thuận lợi cần tận dụng để cải thiện biên lợi nhuận nửa cuối năm.</p>'+
+    '<h3>Đối chiếu chỉ tiêu khoán chi phí</h3><p>Tỷ lệ Urê/doanh thu ('+F1(ureRatio)+'%) '+(ureRatio<=1?'đang nằm trong định mức ≤1%.':'đang vượt định mức ≤1%, cần rà soát.')+' Tỷ lệ VETC/doanh thu ('+F1(vetcRatio)+'%) '+(vetcRatio<=10?'nằm trong định mức ≤10%.':'vượt định mức ≤10%, cần kiểm soát lại.')+' Chi phí bảo dưỡng bình quân mỗi lượt ghi nhận là '+F(bdAvg)+' đ, '+(bdAvg<=1500000?'phù hợp với định mức 1.500.000đ/tua.':'cao hơn định mức 1.500.000đ/tua, cần xem lại tần suất và chi phí bảo dưỡng.')+' Riêng chỉ tiêu lương lái xe hiện tính bình quân chung ('+F1(luongRatio)+'% doanh thu xe nhà) do dữ liệu chưa tách theo tuyến Bắc-Nam/nội miền/cận miền — cần bổ sung gắn nhãn tuyến theo từng chuyến để đối chiếu chính xác với hai định mức 20% và ≤35%.</p>'+
+    '<h3>Cơ cấu nghiệp vụ so với mục tiêu</h3><p>Nhóm "vận tải trục nguyên chuyến" chiếm '+F1(nchuyenRow.actPct)+'% doanh thu, cao hơn mục tiêu 55% khoảng '+F1(nchuyenRow.diff)+' điểm phần trăm; trong khi "hàng ghép" chỉ chiếm '+F1(ghepRow.actPct)+'%, thấp hơn mục tiêu 35% khoảng '+F1(Math.abs(ghepRow.diff))+' điểm phần trăm. Cơ cấu đang nghiêng nhiều về nguyên chuyến trục — nên đẩy mạnh khai thác thêm hàng ghép để tối ưu tải trọng và giảm chi phí/km, đúng theo tỷ trọng mục tiêu đã đăng ký.</p>'+
     '<h3>Cơ cấu xe nhà và thương mại</h3><p>Biên lợi nhuận xe nhà đạt '+F1(ownMargin)+'%, cao hơn đáng kể so với biên thương mại '+F1(commMargin)+'%. Nên ưu tiên tăng tỷ trọng đơn hàng chạy bằng xe nhà thay vì thuê ngoài khi có thể, để cải thiện biên lợi nhuận chung.</p>'+
     '<h3>Mức độ tập trung khách hàng</h3><p>Top 3 khách hàng lớn nhất chiếm khoảng '+F1(top3Share)+'% tổng doanh thu 6 tháng. Mức độ phụ thuộc vào một nhóm nhỏ khách hàng khá cao — cần có kế hoạch mở rộng thêm khách hàng mới để giảm rủi ro khi một khách lớn giảm sản lượng hoặc rời đi.</p>'+
     '<h3>Công nợ phải thu</h3><p>Công nợ phải thu cuối kỳ khoảng '+F(S.ar)+' đ. Nên rà soát danh sách khách còn nợ lũy tiến (xem Bảng công nợ khách hàng ở báo cáo vận hành) để lên kế hoạch thu hồi, ưu tiên các khách có số dư nợ lớn và thời gian nợ kéo dài.</p>'+
     '<h3>Khuyến nghị</h3><ul>'+
     '<li>Bổ sung đầy đủ dữ liệu chi phí (đặc biệt VETC) cho giai đoạn tháng 1-3 để có bức tranh lợi nhuận chính xác, làm cơ sở so sánh công bằng giữa các tháng.</li>'+
+    '<li>Gắn nhãn tuyến (Bắc-Nam / nội miền / cận miền) cho từng chuyến trong dữ liệu lương lái xe, để đối chiếu chính xác với hai định mức khoán 20% và ≤35%.</li>'+
+    '<li>Đẩy mạnh khai thác hàng ghép để đưa cơ cấu nghiệp vụ về sát tỷ trọng mục tiêu đã đăng ký (55% nguyên chuyến trục / 35% hàng ghép), qua đó tối ưu chi phí/km.</li>'+
+    '<li>Tận dụng giai đoạn giá dầu hạ nhiệt (từ tháng 6) để cải thiện biên lợi nhuận, đồng thời theo dõi sát các đợt điều chỉnh giá xăng dầu để chủ động kế hoạch chi phí quý tới.</li>'+
     '<li>Tăng tỷ trọng vận chuyển bằng xe nhà ở các tuyến có biên lợi nhuận thương mại thấp.</li>'+
-    '<li>Xây dựng thêm 2-3 khách hàng lớn mới trong 6 tháng cuối năm để giảm mức độ tập trung vào nhóm khách hiện tại.</li>'+
+    '<li>Xây dựng thêm 2-3 khách hàng lớn mới trong 6 tháng cuối năm để giảm mức độ tập trung vào nhóm khách hiện tại, đồng thời bù phần doanh thu còn thiếu so với kế hoạch.</li>'+
     '<li>Thiết lập lịch nhắc thu hồi công nợ định kỳ hàng tuần đối với các khách có nợ lũy tiến lớn.</li>'+
     '</ul>';
 }
