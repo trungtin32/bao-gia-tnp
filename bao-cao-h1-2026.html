@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Báo cáo tổng kết vận hành 6 tháng đầu năm 2026 — TNP LOG</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#1f2a37;--muted:#6b7280;--line:#e5e7eb;--brand:#0f6e8c;--brand2:#13a89e;--good:#15803d;--bad:#dc2626;--warn:#b45309;--accent:#eef6f8;--fix:#fff7ed;--fixln:#fed7aa}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:14px;line-height:1.55}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 60px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:3px solid var(--brand);padding-bottom:16px;margin-bottom:22px}
+.head h1{font-size:23px;margin:0 0 4px}
+.head .sub{color:var(--muted);font-size:13px}
+.head .meta{font-size:12px;color:var(--muted);margin-top:4px}
+.actions{display:flex;gap:8px;align-items:center}
+.btn{padding:8px 14px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:12.5px;cursor:pointer;color:var(--ink);font-weight:600}
+.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.livestat{font-size:11.5px;color:var(--muted)}
+.livestat.ok{color:var(--good)}.livestat.err{color:var(--bad)}.livestat.load{color:var(--warn)}
+h2.sec{font-size:16px;margin:34px 0 4px;display:flex;align-items:center;gap:8px}
+h2.sec .tag{background:var(--brand);color:#fff;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;letter-spacing:.02em}
+p.cap{color:var(--muted);font-size:12.5px;margin:2px 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0 4px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.kpi.brand{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border:none}
+.kpi .lab{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.kpi.brand .lab{color:rgba(255,255,255,.85)}
+.kpi .val{font-size:21px;font-weight:700;margin-top:6px}
+.kpi .x{font-size:11.5px;margin-top:3px;color:var(--muted)}
+.kpi.brand .x{color:rgba(255,255,255,.85)}
+.scroll{overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+table.t th{background:var(--brand);color:#fff;text-align:right;padding:9px 10px;font-size:11.5px;font-weight:600;white-space:nowrap}
+table.t th.l{text-align:left}
+table.t td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+table.t td.l{text-align:left;font-weight:600}
+table.t tbody tr:nth-child(even){background:#fafbfc}
+table.t tfoot td{font-weight:700;border-top:2px solid var(--brand);background:var(--accent)}
+.pill{padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:700}
+.p-good{background:#dcfce7;color:var(--good)}.p-bad{background:#fee2e2;color:var(--bad)}.p-warn{background:#fff7ed;color:var(--warn)}
+.chartbox{position:relative;height:280px;margin:14px 0}
+.grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;align-items:start}
+.note{background:var(--fix);border:1px solid var(--fixln);border-radius:10px;padding:14px 16px;font-size:13px;color:#9a3412}
+.note b{color:#7c2d12}
+.analysis{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+.analysis h3{font-size:14px;margin:0 0 8px;color:var(--brand)}
+.analysis p{margin:0 0 12px}
+.analysis ul{margin:6px 0 14px;padding-left:20px}
+.analysis li{margin-bottom:6px}
+footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:11.5px}
+@media print{
+  body{background:#fff}
+  .noprint{display:none!important}
+  .wrap{max-width:100%;padding:0 8px}
+  .card,.kpi,table.t{box-shadow:none!important}
+  h2.sec{page-break-after:avoid}
+  .card,.grid2,.kpi{page-break-inside:avoid}
+  table.t{page-break-inside:auto}
+  table.t tr{page-break-inside:avoid}
+  @page{margin:14mm}
+}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div>
+      <h1>Báo cáo tổng kết vận hành 6 tháng đầu năm 2026</h1>
+      <div class="sub">Kỳ báo cáo: 01/01/2026 – 30/06/2026 · TNP LOG International Logistics</div>
+      <div class="meta">Ngày xuất báo cáo: <span id="genDate"></span> · <span class="livestat" id="livestat">⟳ Đang tải dữ liệu…</span></div>
+    </div>
+    <div class="actions noprint">
+      <button class="btn" id="reload">⟳ Tải lại</button>
+      <button class="btn primary" onclick="window.print()">🖨 In báo cáo</button>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <h2 class="sec"><span class="tag">1</span> Diễn biến doanh thu &amp; lãi gộp theo tháng</h2>
+  <p class="cap">Doanh thu, chi phí và lãi gộp từng tháng trong kỳ, tính theo ngày vận chuyển.</p>
+  <div class="grid2">
+    <div class="card"><div class="chartbox"><canvas id="chMonth"></canvas></div></div>
+    <div class="card scroll"><table class="t" id="tMonth"></table></div>
+  </div>
+
+  <h2 class="sec"><span class="tag">2</span> Cơ cấu doanh thu: Xe nhà vs Thương mại</h2>
+  <p class="cap">So sánh tỷ trọng và biên lợi nhuận giữa đội xe nhà (TNP LOG) và các đơn thuê ngoài (NCC thương mại).</p>
+  <div class="grid2">
+    <div class="card"><div class="chartbox"><canvas id="chOwn"></canvas></div></div>
+    <div class="card scroll"><table class="t" id="tOwn"></table></div>
+  </div>
+
+  <h2 class="sec"><span class="tag">3</span> Top 10 khách hàng theo doanh thu</h2>
+  <p class="cap">10 khách hàng đóng góp doanh thu lớn nhất trong 6 tháng đầu năm.</p>
+  <div class="grid2">
+    <div class="card"><div class="chartbox"><canvas id="chCust"></canvas></div></div>
+    <div class="card scroll"><table class="t" id="tCust"></table></div>
+  </div>
+
+  <h2 class="sec"><span class="tag">4</span> Top nhà cung cấp thương mại</h2>
+  <p class="cap">Các đối tác NCC ngoài có doanh thu điều phối và biên lợi nhuận cao nhất.</p>
+  <div class="card scroll"><table class="t" id="tNcc"></table></div>
+
+  <h2 class="sec"><span class="tag">5</span> Cơ cấu theo nghiệp vụ vận chuyển</h2>
+  <p class="cap">Tỷ trọng doanh thu theo từng loại hình nghiệp vụ (tuyến trục, hàng ghép, hàng biên...).</p>
+  <div class="card scroll"><table class="t" id="tNv"></table></div>
+
+  <h2 class="sec"><span class="tag">6</span> Lưu ý về dữ liệu</h2>
+  <div class="note">
+    <b>Chi phí VETC (phí trạm thu phí tự động)</b> trong sheet nguồn chỉ được ghi nhận từ <b>01/04/2026</b> trở đi. Do đó, tổng chi phí và lãi gộp của các tháng 1, 2, 3/2026 trong báo cáo này <b>chưa bao gồm chi phí VETC thực tế</b> — lãi gộp các tháng này vì vậy có thể đang được thể hiện <b>cao hơn thực tế</b> so với các tháng từ tháng 4 trở đi. Khi so sánh xu hướng lợi nhuận giữa các tháng, cần cân nhắc yếu tố này thay vì kết luận toàn bộ mức sụt giảm là do hoạt động kinh doanh kém đi.
+  </div>
+
+  <h2 class="sec"><span class="tag">7</span> Nhận định &amp; Khuyến nghị</h2>
+  <div class="analysis" id="analysis"></div>
+
+  <footer>
+    Nguồn dữ liệu: Google Sheet "ĐƠN HÀNG_LỊCH XE_2026" và "NHẬP CHI PHÍ 2026" · Số liệu tính trực tiếp từ dữ liệu sống tại thời điểm tải trang · Báo cáo phục vụ mục đích nội bộ.
+  </footer>
+</div>
+
+<script>
+const SHEET_CSV="https://docs.google.com/spreadsheets/d/1c5HtmjEDWYnRvJXQS8OcAJaRUkSWF5ICAmcJjOl80QQ/export?format=csv&gid=872982324";
+const COST_ID="1mRA8DoTp51DfU2kkk2ZnMnejVkM3vweGHHD2sO67gxw";
+const OWN_SET=new Set(["50H-756.77","50H-260.74","50H-904.92","50E-658.83","50H-903.08","50H-449.61","50E-673.32","50E-533.54"]);
+const F=n=>new Intl.NumberFormat('vi-VN').format(Math.round(n||0));
+const F1=n=>new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(n||0);
+const pct=(a,b)=>b?a/b*100:0;
+const paid=s=>(s||'').trim().toLowerCase()==='đã thanh toán';
+function groupBy(a,k){const m={};a.forEach(o=>{const x=k(o);(m[x]=m[x]||[]).push(o);});return m;}
+function vbsx(s){const m=/5\d[A-Z]-\d{2,3}\.\d{2}/.exec(s||'');if(!m)return'';let b=m[0];if(b==='50H-44.61')b='50H-449.61';return b;}
+function parseCSV(text){const rows=[];let row=[],field='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else q=false;}else field+=c;}else{if(c==='"')q=true;else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}else if(c==='\r'){}else field+=c;}}if(field!==''||row.length){row.push(field);rows.push(row);}return rows;}
+function vnum(s){s=(s||'').trim().replace(/\./g,'').replace(/ /g,'').replace(/,/g,'.');const v=parseFloat(s);return isNaN(v)?0:v;}
+function vdate(s){const m=/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec((s||'').trim());if(!m)return null;let d=+m[1],mo=+m[2],y=+m[3];if(y<100)y+=2000;const dt=new Date(Date.UTC(y,mo-1,d));if(dt.getUTCMonth()!==mo-1)return null;return dt.toISOString().slice(0,10);}
+function cleanS(s){return (s||'').replace(/\s+/g,' ').trim();}
+function normalize(rows){const O=[];for(let i=4;i<rows.length;i++){let r=rows[i];if(!r)continue;while(r.length<32)r=r.concat('');const maDon=cleanS(r[1]),khach=cleanS(r[2]);if(!maDon&&!khach)continue;const ncc=cleanS(r[23]);O.push({maDon,khach,ngayNhan:vdate(r[4]),ngayVC:vdate(r[6]),ngayGiao:vdate(r[7]),bsx:cleanS(r[9])||'(chưa gán)',tenHang:cleanS(r[15]),kg:vnum(r[16]),cbm:vnum(r[17]),diemNhan:cleanS(r[18]),diemGiao:cleanS(r[19]),nghiepVu:cleanS(r[21])||'(khác)',cuoc:vnum(r[22]),ncc,cuocNCC:vnum(r[24]),ttNCC:cleanS(r[25]),surcharge:vnum(r[26])+vnum(r[27])+vnum(r[28]),trangThai:cleanS(r[29]),ttCongNo:cleanS(r[30]),own:ncc==='TNP LOG'||ncc===''});}return O;}
+async function fetchCost(src,dI,bI,aI,div,catI,catVal){div=div||1;const u=/^\d+$/.test(String(src))?'https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src:'https://docs.google.com/spreadsheets/d/'+COST_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(src)+'&headers=0';const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<=Math.max(dI,bI,aI))continue;if(catVal!==undefined&&(r[catI]||'').trim()!==catVal)continue;const d=vdate(r[dI]),b=vbsx(r[bI]),a=vnum(r[aI])/div;if(d&&d.slice(0,4)==='2026'&&OWN_SET.has(b)&&a)out.push({b,d,a:Math.round(a)});}return out;}
+async function fetchLuong(src){const u=/^\d+$/.test(String(src))?'https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src:'https://docs.google.com/spreadsheets/d/'+COST_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(src)+'&headers=0';const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<5)continue;const y=(r[0]||'').trim(),mo=(r[1]||'').trim(),b=vbsx(r[3]),a=vnum(r[4]);if(/^\d{4}$/.test(y)&&/^\d{1,2}$/.test(mo)&&OWN_SET.has(b)&&a)out.push({b,ym:y+'-'+String(+mo).padStart(2,'0'),a:Math.round(a)});}return out;}
+
+let ORDERS=[],FUEL=[],URE=[],BDDATA=[],CKDATA=[],VETCDATA=[],LUONGDATA=[];
+const F_FROM='2026-01-01', F_TO='2026-06-30';
+let chMonth=null,chOwn=null,chCust=null;
+
+function setStat(t,cls){const e=document.getElementById('livestat');e.textContent=t;e.className='livestat '+(cls||'');}
+
+function monthsInRange(f,t){const out=new Set();let y=+f.slice(0,4),m=+f.slice(5,7);const ty=+t.slice(0,4),tm=+t.slice(5,7);while(y<ty||(y===ty&&m<=tm)){out.add(y+'-'+String(m).padStart(2,'0'));m++;if(m>12){m=1;y++;}}return out;}
+function sumRangeArr(arr,f,t){return arr.filter(x=>x.d>=f&&x.d<=t).reduce((s,x)=>s+x.a,0);}
+function sumLuong(f,t){const ms=monthsInRange(f,t);return LUONGDATA.filter(x=>ms.has(x.ym)).reduce((s,x)=>s+x.a,0);}
+
+function statsFor(f,t){
+  const rows=ORDERS.filter(o=>{const d=o.ngayVC||o.ngayNhan;return d&&d>=f&&d<=t;});
+  const own=rows.filter(o=>o.own),comm=rows.filter(o=>!o.own);
+  const rev=rows.reduce((s,o)=>s+o.cuoc,0);
+  const fuel=sumRangeArr(FUEL,f,t), ure=sumRangeArr(URE,f,t), bd=sumRangeArr(BDDATA,f,t), ck=sumRangeArr(CKDATA,f,t), vetc=sumRangeArr(VETCDATA,f,t), luong=sumLuong(f,t);
+  const bx=own.reduce((s,o)=>s+o.surcharge,0);
+  const cpComm=comm.reduce((s,o)=>s+o.cuocNCC,0);
+  const ownDT=own.reduce((s,o)=>s+o.cuoc,0), ownCP=fuel+ure+bd+ck+vetc+luong+bx;
+  const commDT=comm.reduce((s,o)=>s+o.cuoc,0), commCP=cpComm;
+  const totCP=ownCP+commCP;
+  const lai=rev-totCP;
+  const ar=rows.filter(o=>!paid(o.ttCongNo)).reduce((s,o)=>s+o.cuoc,0);
+  return{rows,n:rows.length,rev,totCP,lai,ar,own,comm,ownDT,ownCP,commDT,commCP};
+}
+
+function render(){
+  const S=statsFor(F_FROM,F_TO);
+  document.getElementById('kpis').innerHTML=[
+    ['brand','Tổng doanh thu',F(S.rev)+' đ',S.n+' đơn'],
+    ['','Tổng chi phí',F(S.totCP)+' đ',F1(pct(S.totCP,S.rev))+'% doanh thu'],
+    ['','Lãi gộp',F(S.lai)+' đ','Biên '+F1(pct(S.lai,S.rev))+'%'],
+    ['','Công nợ phải thu',F(S.ar)+' đ',S.rows.filter(o=>!paid(o.ttCongNo)).length+' đơn chưa thu'],
+  ].map(x=>'<div class="kpi '+x[0]+'"><div class="lab">'+x[1]+'</div><div class="val">'+x[2]+'</div><div class="x">'+x[3]+'</div></div>').join('');
+
+  // Section 1: monthly
+  const months=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
+  const mLabels=['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6'];
+  const perMonth=months.map(ym=>{
+    const f=ym+'-01';
+    const lastDay=new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate();
+    const t=ym+'-'+String(lastDay).padStart(2,'0');
+    const s=statsFor(f,t);
+    return{ym,n:s.n,rev:s.rev,cp:s.totCP,lai:s.lai};
+  });
+  const Tm=perMonth.reduce((a,x)=>({n:a.n+x.n,rev:a.rev+x.rev,cp:a.cp+x.cp,lai:a.lai+x.lai}),{n:0,rev:0,cp:0,lai:0});
+  document.getElementById('tMonth').innerHTML='<thead><tr><th class="l">Tháng</th><th>Số đơn</th><th>Doanh thu</th><th>Chi phí</th><th>Lãi gộp</th><th>% Lãi</th></tr></thead><tbody>'+
+    perMonth.map((x,i)=>'<tr><td class="l">'+mLabels[i]+'</td><td>'+x.n+'</td><td>'+F(x.rev)+'</td><td>'+F(x.cp)+'</td><td>'+F(x.lai)+'</td><td><span class="pill '+(x.lai>=0?'p-good':'p-bad')+'">'+F1(pct(x.lai,x.rev))+'%</span></td></tr>').join('')+
+    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+Tm.n+'</td><td>'+F(Tm.rev)+'</td><td>'+F(Tm.cp)+'</td><td>'+F(Tm.lai)+'</td><td>'+F1(pct(Tm.lai,Tm.rev))+'%</td></tr></tfoot>';
+  if(chMonth)chMonth.destroy();
+  chMonth=new Chart(document.getElementById('chMonth'),{type:'bar',data:{labels:mLabels,datasets:[
+    {type:'bar',label:'Doanh thu',data:perMonth.map(x=>x.rev),backgroundColor:'#0f6e8c',borderRadius:3,order:2},
+    {type:'line',label:'Lãi gộp',data:perMonth.map(x=>x.lai),borderColor:'#dc2626',backgroundColor:'#dc2626',tension:.3,order:1}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+F(c.parsed.y)+' đ'}}},scales:{y:{ticks:{callback:v=>F(v/1e6)+'M'}}}}});
+
+  // Section 2: own vs commercial
+  document.getElementById('tOwn').innerHTML='<thead><tr><th class="l">Nhóm</th><th>Số đơn</th><th>Doanh thu</th><th>Chi phí</th><th>Lãi gộp</th><th>% Lãi</th></tr></thead><tbody>'+
+    '<tr><td class="l">Xe nhà (TNP LOG)</td><td>'+S.own.length+'</td><td>'+F(S.ownDT)+'</td><td>'+F(S.ownCP)+'</td><td>'+F(S.ownDT-S.ownCP)+'</td><td><span class="pill p-good">'+F1(pct(S.ownDT-S.ownCP,S.ownDT))+'%</span></td></tr>'+
+    '<tr><td class="l">Thương mại (NCC ngoài)</td><td>'+S.comm.length+'</td><td>'+F(S.commDT)+'</td><td>'+F(S.commCP)+'</td><td>'+F(S.commDT-S.commCP)+'</td><td><span class="pill p-good">'+F1(pct(S.commDT-S.commCP,S.commDT))+'%</span></td></tr>'+
+    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+S.n+'</td><td>'+F(S.rev)+'</td><td>'+F(S.totCP)+'</td><td>'+F(S.lai)+'</td><td>'+F1(pct(S.lai,S.rev))+'%</td></tr></tfoot>';
+  if(chOwn)chOwn.destroy();
+  chOwn=new Chart(document.getElementById('chOwn'),{type:'doughnut',data:{labels:['Xe nhà (TNP LOG)','Thương mại (NCC ngoài)'],datasets:[{data:[S.ownDT,S.commDT],backgroundColor:['#0f6e8c','#f59e0b']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},tooltip:{callbacks:{label:c=>c.label+': '+F(c.parsed)+' đ ('+F1(pct(c.parsed,S.rev))+'%)'}}}}});
+
+  // Section 3: top customers
+  const byCust=groupBy(S.rows,o=>o.khach||'(không tên)');
+  const custArr=Object.entries(byCust).map(([kh,a])=>({kh,dt:a.reduce((s,o)=>s+o.cuoc,0),n:a.length})).sort((a,b)=>b.dt-a.dt).slice(0,10);
+  document.getElementById('tCust').innerHTML='<thead><tr><th class="l">Khách hàng</th><th>Đơn</th><th>Doanh thu</th><th>% Tổng DT</th></tr></thead><tbody>'+
+    custArr.map(x=>'<tr><td class="l">'+x.kh+'</td><td>'+x.n+'</td><td>'+F(x.dt)+'</td><td>'+F1(pct(x.dt,S.rev))+'%</td></tr>').join('')+'</tbody>';
+  if(chCust)chCust.destroy();
+  chCust=new Chart(document.getElementById('chCust'),{type:'bar',data:{labels:custArr.map(x=>x.kh),datasets:[{label:'Doanh thu',data:custArr.map(x=>x.dt),backgroundColor:'#13a89e',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>F(c.parsed.x)+' đ'}}},scales:{x:{ticks:{callback:v=>F(v/1e6)+'M'}},y:{ticks:{font:{size:10.5}}}}}});
+
+  // Section 4: top NCC
+  const byNcc=groupBy(S.comm,o=>o.ncc||'(khác)');
+  const nccArr=Object.entries(byNcc).map(([ncc,a])=>({ncc,dt:a.reduce((s,o)=>s+o.cuoc,0),cp:a.reduce((s,o)=>s+o.cuocNCC,0),n:a.length})).sort((a,b)=>b.dt-a.dt).slice(0,10);
+  document.getElementById('tNcc').innerHTML='<thead><tr><th class="l">Nhà cung cấp</th><th>Đơn</th><th>Doanh thu</th><th>CP NCC</th><th>Lãi</th><th>% Lãi</th></tr></thead><tbody>'+
+    nccArr.map(x=>'<tr><td class="l">'+x.ncc+'</td><td>'+x.n+'</td><td>'+F(x.dt)+'</td><td>'+F(x.cp)+'</td><td>'+F(x.dt-x.cp)+'</td><td>'+F1(pct(x.dt-x.cp,x.dt))+'%</td></tr>').join('')+'</tbody>';
+
+  // Section 5: nghiệp vụ
+  const byNv=groupBy(S.rows,o=>o.nghiepVu||'(khác)');
+  const nvArr=Object.entries(byNv).map(([nv,a])=>({nv,dt:a.reduce((s,o)=>s+o.cuoc,0),n:a.length})).sort((a,b)=>b.dt-a.dt);
+  document.getElementById('tNv').innerHTML='<thead><tr><th class="l">Nghiệp vụ</th><th>Đơn</th><th>Doanh thu</th><th>% Tổng DT</th></tr></thead><tbody>'+
+    nvArr.map(x=>'<tr><td class="l">'+x.nv+'</td><td>'+x.n+'</td><td>'+F(x.dt)+'</td><td>'+F1(pct(x.dt,S.rev))+'%</td></tr>').join('')+'</tbody>';
+
+  // Section 7: analysis (dynamic numbers)
+  const first=perMonth[0], last=perMonth[5];
+  const laiDrop=first.lai-last.lai;
+  const laiDropPct=first.lai?laiDrop/first.lai*100:0;
+  const top3Share=pct(custArr.slice(0,3).reduce((s,x)=>s+x.dt,0),S.rev);
+  const ownMargin=pct(S.ownDT-S.ownCP,S.ownDT), commMargin=pct(S.commDT-S.commCP,S.commDT);
+  document.getElementById('analysis').innerHTML=
+    '<h3>Xu hướng lợi nhuận</h3><p>Lãi gộp giảm liên tục từ '+F(first.lai)+' đ (tháng 1) xuống còn '+F(last.lai)+' đ (tháng 6), tương đương giảm '+F1(laiDropPct)+'%. Tuy nhiên cần lưu ý chi phí VETC của quý 1 chưa được ghi nhận đầy đủ (xem mục 6), nên mức giảm thực tế có thể thấp hơn con số này. Dù vậy, xu hướng giảm dần qua các tháng 4-6 (dữ liệu VETC đầy đủ) là tín hiệu cần theo dõi sát.</p>'+
+    '<h3>Cơ cấu xe nhà và thương mại</h3><p>Biên lợi nhuận xe nhà đạt '+F1(ownMargin)+'%, cao hơn đáng kể so với biên thương mại '+F1(commMargin)+'%. Nên ưu tiên tăng tỷ trọng đơn hàng chạy bằng xe nhà thay vì thuê ngoài khi có thể, để cải thiện biên lợi nhuận chung.</p>'+
+    '<h3>Mức độ tập trung khách hàng</h3><p>Top 3 khách hàng lớn nhất chiếm khoảng '+F1(top3Share)+'% tổng doanh thu 6 tháng. Mức độ phụ thuộc vào một nhóm nhỏ khách hàng khá cao — cần có kế hoạch mở rộng thêm khách hàng mới để giảm rủi ro khi một khách lớn giảm sản lượng hoặc rời đi.</p>'+
+    '<h3>Công nợ phải thu</h3><p>Công nợ phải thu cuối kỳ khoảng '+F(S.ar)+' đ. Nên rà soát danh sách khách còn nợ lũy tiến (xem Bảng công nợ khách hàng ở báo cáo vận hành) để lên kế hoạch thu hồi, ưu tiên các khách có số dư nợ lớn và thời gian nợ kéo dài.</p>'+
+    '<h3>Khuyến nghị</h3><ul>'+
+    '<li>Bổ sung đầy đủ dữ liệu chi phí (đặc biệt VETC) cho giai đoạn tháng 1-3 để có bức tranh lợi nhuận chính xác, làm cơ sở so sánh công bằng giữa các tháng.</li>'+
+    '<li>Tăng tỷ trọng vận chuyển bằng xe nhà ở các tuyến có biên lợi nhuận thương mại thấp.</li>'+
+    '<li>Xây dựng thêm 2-3 khách hàng lớn mới trong 6 tháng cuối năm để giảm mức độ tập trung vào nhóm khách hiện tại.</li>'+
+    '<li>Thiết lập lịch nhắc thu hồi công nợ định kỳ hàng tuần đối với các khách có nợ lũy tiến lớn.</li>'+
+    '</ul>';
+}
+
+async function loadLive(){
+  setStat('⟳ Đang tải dữ liệu…','load');
+  try{
+    const res=await fetch(SHEET_CSV,{cache:'no-store'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const txt=await res.text();
+    const O=normalize(parseCSV(txt));
+    if(!O.length)throw new Error('empty');
+    ORDERS=O;
+    setStat('● Trực tiếp · cập nhật '+new Date().toLocaleTimeString('vi-VN'),'ok');
+    render();
+  }catch(e){setStat('⚠ Không tải được dữ liệu — thử lại sau','err');}
+  try{BDDATA=await fetchCost('1371715147',0,1,9,1,4,'Bảo Dưỡng_Sửa Chữa');render();}catch(e){}
+  try{CKDATA=await fetchCost('1598506940',0,2,4);render();}catch(e){}
+  try{VETCDATA=await fetchCost('736934312',23,21,24,1.08);render();}catch(e){}
+  try{FUEL=await fetchCost('0',1,2,9);render();}catch(e){}
+  try{URE=await fetchCost('NHAP_URE',1,2,9);render();}catch(e){}
+  try{LUONGDATA=await fetchLuong('NHAP_LUONG TX');render();}catch(e){}
+}
+
+document.getElementById('genDate').textContent=new Date().toLocaleDateString('vi-VN');
+document.getElementById('reload').addEventListener('click',loadLive);
+loadLive();
+</script>
+</body>
+</html>
