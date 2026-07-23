@@ -290,11 +290,9 @@ function aggregate(rows) {
   });
 
   return Object.values(map).map(e => {
-    // ĐM thực = Lít tính ĐM / KM × 100
-    if (e.litDM > 0 && e.km > 50) {
-      e.dmThuc = e.litDM / e.km * 100;
-    } else if (e.kmForTieu > 50) {
-      e.dmThuc = e.tieuThu / e.kmForTieu * 100;
+    // ĐM thực = Σ tieuThu / Σ km × 100 (khớp công thức sheet tổng hợp)
+    if (e.tieuThu > 0 && e.km > 50) {
+      e.dmThuc = e.tieuThu / e.km * 100;
     } else if (e.km > 50) {
       e.dmThuc = e.litDo / e.km * 100;
     } else {
@@ -366,7 +364,7 @@ function renderTable(vehs) {
   const totKm = vehs.reduce((s,v) => s + v.km, 0);
   const totTrips = vehs.reduce((s,v) => s + v.trips, 0);
 
-  const totLitDM = vehs.reduce((s,v) => s + (v.litDM || 0), 0);
+  const totLitDM = vehs.reduce((s,v) => s + (v.tieuThu || 0), 0);
   const totDMthuc = totLitDM > 0 && totKm > 0 ? totLitDM / totKm * 100 : null;
   const avgGiaTB = totLit > 0 ? totCost / totLit : null;
 
@@ -389,7 +387,7 @@ function renderTable(vehs) {
     const pillCls = chenh == null ? '' : chenh > 0 ? 'p-bad' : chenh > -1 ? 'p-warn' : 'p-good';
     const chenhStr = chenh == null ? '—' : (chenh > 0 ? '+' : '') + chenh.toFixed(2);
     const dmStr = v.dmThuc != null ? v.dmThuc.toFixed(2) : '—';
-    const litDMStr = v.litDM > 0 ? fmt(v.litDM, 1) : '—';
+    const litDMStr = v.tieuThu > 0 ? fmt(v.tieuThu, 1) : '—';
 
     html += `<tr>
       <td class="l"><strong>${v.plate}</strong></td>
