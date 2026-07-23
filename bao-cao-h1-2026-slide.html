@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slide tóm tắt — Báo cáo vận hành 6 tháng đầu năm 2026 — TNP LOG</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#1f2a37;--muted:#6b7280;--line:#e2e8f0;--primary:#0f6e8c;--primaryDark:#0a4a5e;--secondary:#13a89e;--accent:#f59e0b;--good:#15803d;--bad:#dc2626}
+*{box-sizing:border-box}
+body{margin:0;background:#dfe4ea;color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.slide{width:1280px;min-height:720px;margin:24px auto;background:var(--bg);box-shadow:0 4px 24px rgba(0,0,0,.15);position:relative;overflow:hidden}
+.actions{max-width:1280px;margin:0 auto;padding:10px 0 0;display:flex;justify-content:flex-end;gap:8px}
+.btn{padding:8px 14px;border:1px solid #cbd5e1;background:#fff;border-radius:8px;font-size:12.5px;cursor:pointer;color:var(--ink);font-weight:600}
+.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.head{background:var(--primary);color:#fff;padding:20px 48px 16px;display:flex;justify-content:space-between;align-items:flex-start}
+.head h1{font-size:26px;margin:0 0 6px;font-family:Cambria,Georgia,serif;font-weight:700;letter-spacing:.01em}
+.head .sub{font-size:13px;color:#cadcec}
+.head .plan{font-size:13px;font-weight:700;text-align:right;white-space:nowrap}
+.body{padding:20px 48px 16px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);position:relative}
+.kpi .bar{position:absolute;left:14px;top:16px;width:5px;height:14px;border-radius:1px}
+.kpi .lab{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-left:14px}
+.kpi .val{font-family:Cambria,Georgia,serif;font-size:23px;font-weight:700;margin:8px 0 2px}
+.kpi .note{font-size:10.5px;color:var(--muted)}
+.row2{display:grid;grid-template-columns:1.55fr 1fr;gap:22px;margin-bottom:18px}
+.sechead{font-size:12.5px;font-weight:700;color:var(--primaryDark);text-transform:uppercase;letter-spacing:.03em;margin:0 0 8px}
+.chartbox{position:relative;height:230px}
+table.mini{width:100%;border-collapse:collapse;font-size:12.5px}
+table.mini th{background:var(--primary);color:#fff;padding:7px 10px;font-size:11px;font-weight:600}
+table.mini th:not(:first-child),table.mini td:not(:first-child){text-align:right}
+table.mini th:first-child,table.mini td:first-child{text-align:left}
+table.mini td{padding:7px 10px;border-bottom:1px solid var(--line)}
+table.mini tbody tr:nth-child(even){background:#f7fafb}
+.insHead{font-size:12.5px;font-weight:700;color:var(--primaryDark);text-transform:uppercase;letter-spacing:.03em;margin:0 0 8px}
+.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.ins{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;gap:10px}
+.ins .num{width:30px;height:30px;min-width:30px;border-radius:50%;background:var(--secondary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.ins .txt b{display:block;font-size:12.5px;margin-bottom:3px}
+.ins .txt span{font-size:10.5px;color:var(--muted);line-height:1.4}
+.footer{padding:8px 48px 16px;font-size:10px;font-style:italic;color:var(--muted)}
+@media print{
+  body{background:#fff}
+  .actions{display:none}
+  .slide{box-shadow:none;margin:0;width:100%}
+  @page{size:landscape;margin:0}
+}
+</style>
+</head>
+<body>
+<div class="actions"><button class="btn" id="reload">⟳ Tải lại</button><button class="btn primary" onclick="window.print()">🖨 In slide</button></div>
+<div class="slide">
+  <div class="head">
+    <div>
+      <h1>BÁO CÁO VẬN HÀNH 6 THÁNG ĐẦU NĂM 2026</h1>
+      <div class="sub">TNP LOG International Logistics &nbsp;·&nbsp; Kỳ báo cáo 01/01/2026 – 30/06/2026</div>
+    </div>
+    <div class="plan" id="planTag">Đang tải…</div>
+  </div>
+  <div class="body">
+    <div class="kpis" id="kpis"></div>
+    <div class="row2">
+      <div>
+        <div class="sechead">Diễn biến doanh thu &amp; lãi gộp theo tháng</div>
+        <div class="chartbox"><canvas id="chMonth"></canvas></div>
+      </div>
+      <div>
+        <div class="sechead">Top 5 khách hàng theo doanh thu</div>
+        <table class="mini" id="tTop5"></table>
+      </div>
+    </div>
+    <div class="insHead">Nhận định chính</div>
+    <div class="insights" id="insights"></div>
+  </div>
+  <div class="footer">Nguồn: Google Sheet "ĐƠN HÀNG_LỊCH XE_2026" &amp; "NHẬP CHI PHÍ 2026" · Số liệu trực tiếp tại thời điểm tải trang · Xem báo cáo đầy đủ tại bao-cao-h1-2026.html</div>
+</div>
+
+<script>
+const SHEET_CSV="https://docs.google.com/spreadsheets/d/1c5HtmjEDWYnRvJXQS8OcAJaRUkSWF5ICAmcJjOl80QQ/export?format=csv&gid=872982324";
+const COST_ID="1mRA8DoTp51DfU2kkk2ZnMnejVkM3vweGHHD2sO67gxw";
+const OWN_SET=new Set(["50H-756.77","50H-260.74","50H-904.92","50E-658.83","50H-903.08","50H-449.61","50E-673.32","50E-533.54"]);
+const F=n=>new Intl.NumberFormat('vi-VN').format(Math.round(n||0));
+const F1=n=>new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(n||0);
+const pct=(a,b)=>b?a/b*100:0;
+const paid=s=>(s||'').trim().toLowerCase()==='đã thanh toán';
+function groupBy(a,k){const m={};a.forEach(o=>{const x=k(o);(m[x]=m[x]||[]).push(o);});return m;}
+function vbsx(s){const m=/5\d[A-Z]-\d{2,3}\.\d{2}/.exec(s||'');if(!m)return'';let b=m[0];if(b==='50H-44.61')b='50H-449.61';return b;}
+function parseCSV(text){const rows=[];let row=[],field='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else q=false;}else field+=c;}else{if(c==='"')q=true;else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}else if(c==='\r'){}else field+=c;}}if(field!==''||row.length){row.push(field);rows.push(row);}return rows;}
+function vnum(s){s=(s||'').trim().replace(/\./g,'').replace(/ /g,'').replace(/,/g,'.');const v=parseFloat(s);return isNaN(v)?0:v;}
+function vdate(s){const m=/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec((s||'').trim());if(!m)return null;let d=+m[1],mo=+m[2],y=+m[3];if(y<100)y+=2000;const dt=new Date(Date.UTC(y,mo-1,d));if(dt.getUTCMonth()!==mo-1)return null;return dt.toISOString().slice(0,10);}
+function cleanS(s){return (s||'').replace(/\s+/g,' ').trim();}
+function normalize(rows){const O=[];for(let i=4;i<rows.length;i++){let r=rows[i];if(!r)continue;while(r.length<32)r=r.concat('');const maDon=cleanS(r[1]),khach=cleanS(r[2]);if(!maDon&&!khach)continue;const ncc=cleanS(r[23]);O.push({maDon,khach,ngayNhan:vdate(r[4]),ngayVC:vdate(r[6]),ngayGiao:vdate(r[7]),bsx:cleanS(r[9])||'(chưa gán)',nghiepVu:cleanS(r[21])||'(khác)',cuoc:vnum(r[22]),ncc,cuocNCC:vnum(r[24]),surcharge:vnum(r[26])+vnum(r[27])+vnum(r[28]),ttCongNo:cleanS(r[30]),own:ncc==='TNP LOG'||ncc===''});}return O;}
+async function fetchCost(src,dI,bI,aI,div,catI,catVal){div=div||1;const u=/^\d+$/.test(String(src))?'https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src:'https://docs.google.com/spreadsheets/d/'+COST_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(src)+'&headers=0';const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<=Math.max(dI,bI,aI))continue;if(catVal!==undefined&&(r[catI]||'').trim()!==catVal)continue;const d=vdate(r[dI]),b=vbsx(r[bI]),a=vnum(r[aI])/div;if(d&&d.slice(0,4)==='2026'&&OWN_SET.has(b)&&a)out.push({b,d,a:Math.round(a)});}return out;}
+async function fetchLuong(src){const u=/^\d+$/.test(String(src))?'https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src:'https://docs.google.com/spreadsheets/d/'+COST_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(src)+'&headers=0';const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<5)continue;const y=(r[0]||'').trim(),mo=(r[1]||'').trim(),b=vbsx(r[3]),a=vnum(r[4]);if(/^\d{4}$/.test(y)&&/^\d{1,2}$/.test(mo)&&OWN_SET.has(b)&&a)out.push({b,ym:y+'-'+String(+mo).padStart(2,'0'),a:Math.round(a)});}return out;}
+
+let ORDERS=[],FUEL=[],URE=[],BDDATA=[],CKDATA=[],VETCDATA=[],LUONGDATA=[];
+const F_FROM='2026-01-01', F_TO='2026-06-30';
+let chMonth=null;
+const REV_TARGET={'2026-01':1150000000,'2026-02':1150000000,'2026-03':1150000000,'2026-04':1500000000,'2026-05':1500000000,'2026-06':1680000000};
+const REV_TARGET_H1=Object.values(REV_TARGET).reduce((a,b)=>a+b,0);
+const NV_TARGET={'Vận tải trục nguyên chuyến':55,'Vận tải trục hàng ghép':35,'Nguyên chuyến nội miền':5,'Nguyên chuyến cận miền':5};
+function classifyNV(nv){const s=(nv||'').toLowerCase();if(s.includes('ghép'))return'Vận tải trục hàng ghép';if(s.includes('nội miền'))return'Nguyên chuyến nội miền';if(s.includes('cận miền'))return'Nguyên chuyến cận miền';if(s.includes('trục')||s.includes('nguyên chuyến'))return'Vận tải trục nguyên chuyến';return'Khác';}
+
+function monthsInRange(f,t){const out=new Set();let y=+f.slice(0,4),m=+f.slice(5,7);const ty=+t.slice(0,4),tm=+t.slice(5,7);while(y<ty||(y===ty&&m<=tm)){out.add(y+'-'+String(m).padStart(2,'0'));m++;if(m>12){m=1;y++;}}return out;}
+function sumRangeArr(arr,f,t){return arr.filter(x=>x.d>=f&&x.d<=t).reduce((s,x)=>s+x.a,0);}
+function sumLuong(f,t){const ms=monthsInRange(f,t);return LUONGDATA.filter(x=>ms.has(x.ym)).reduce((s,x)=>s+x.a,0);}
+function statsFor(f,t){
+  const rows=ORDERS.filter(o=>{const d=o.ngayVC||o.ngayNhan;return d&&d>=f&&d<=t;});
+  const own=rows.filter(o=>o.own),comm=rows.filter(o=>!o.own);
+  const rev=rows.reduce((s,o)=>s+o.cuoc,0);
+  const fuel=sumRangeArr(FUEL,f,t), ure=sumRangeArr(URE,f,t), bd=sumRangeArr(BDDATA,f,t), ck=sumRangeArr(CKDATA,f,t), vetc=sumRangeArr(VETCDATA,f,t), luong=sumLuong(f,t);
+  const bx=own.reduce((s,o)=>s+o.surcharge,0);
+  const cpComm=comm.reduce((s,o)=>s+o.cuocNCC,0);
+  const ownDT=own.reduce((s,o)=>s+o.cuoc,0), ownCP=fuel+ure+bd+ck+vetc+luong+bx;
+  const commDT=comm.reduce((s,o)=>s+o.cuoc,0), commCP=cpComm;
+  const totCP=ownCP+commCP;
+  const lai=rev-totCP;
+  const ar=rows.filter(o=>!paid(o.ttCongNo)).reduce((s,o)=>s+o.cuoc,0);
+  return{rows,n:rows.length,rev,totCP,lai,ar,own,comm,ownDT,ownCP,commDT,commCP};
+}
+
+function render(){
+  const S=statsFor(F_FROM,F_TO);
+  const planPct=pct(S.rev,REV_TARGET_H1);
+  document.getElementById('planTag').textContent='Đạt '+F1(planPct)+'% kế hoạch doanh thu';
+  document.getElementById('kpis').innerHTML=[
+    ['#0f6e8c','TỔNG DOANH THU',F(S.rev)+' đ',S.n+' đơn · '+F1(planPct)+'% kế hoạch'],
+    ['#6b7280','TỔNG CHI PHÍ',F(S.totCP)+' đ',F1(pct(S.totCP,S.rev))+'% doanh thu'],
+    ['#15803d','LÃI GỘP',F(S.lai)+' đ','Biên lợi nhuận '+F1(pct(S.lai,S.rev))+'%'],
+    ['#dc2626','CÔNG NỢ PHẢI THU',F(S.ar)+' đ',S.rows.filter(o=>!paid(o.ttCongNo)).length+' đơn chưa thu'],
+  ].map(x=>'<div class="kpi"><div class="bar" style="background:'+x[0]+'"></div><div class="lab">'+x[1]+'</div><div class="val">'+x[2]+'</div><div class="note">'+x[3]+'</div></div>').join('');
+
+  const months=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
+  const mLabels=['T1','T2','T3','T4','T5','T6'];
+  const perMonth=months.map(ym=>{const f=ym+'-01';const lastDay=new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate();const t=ym+'-'+String(lastDay).padStart(2,'0');const s=statsFor(f,t);return{ym,rev:s.rev,lai:s.lai};});
+  if(chMonth)chMonth.destroy();
+  chMonth=new Chart(document.getElementById('chMonth'),{data:{labels:mLabels,datasets:[
+    {type:'bar',label:'Doanh thu',data:perMonth.map(x=>x.rev),backgroundColor:'#0f6e8c',borderRadius:3,order:2,yAxisID:'y'},
+    {type:'line',label:'Lãi gộp',data:perMonth.map(x=>x.lai),borderColor:'#f59e0b',backgroundColor:'#f59e0b',tension:.3,order:1,yAxisID:'y1'}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10.5},boxWidth:11}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+F(c.parsed.y)+' đ'}}},scales:{y:{ticks:{font:{size:10},callback:v=>F(v/1e6)+'M'}},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:10},callback:v=>F(v/1e6)+'M'}}}}});
+
+  const byCust=groupBy(S.rows,o=>o.khach||'(không tên)');
+  const custArr=Object.entries(byCust).map(([kh,a])=>({kh,dt:a.reduce((s,o)=>s+o.cuoc,0)})).sort((a,b)=>b.dt-a.dt).slice(0,5);
+  document.getElementById('tTop5').innerHTML='<thead><tr><th>Khách hàng</th><th>Doanh thu</th><th>%</th></tr></thead><tbody>'+
+    custArr.map(x=>'<tr><td>'+x.kh+'</td><td>'+F(x.dt)+' đ</td><td>'+F1(pct(x.dt,S.rev))+'%</td></tr>').join('')+'</tbody>';
+
+  const byNv=groupBy(S.rows,o=>o.nghiepVu||'(khác)');
+  const nvBucket={};
+  Object.entries(byNv).forEach(([nv,a])=>{const b=classifyNV(nv);nvBucket[b]=(nvBucket[b]||0)+a.reduce((s,o)=>s+o.cuoc,0);});
+  const nchuyenPct=pct(nvBucket['Vận tải trục nguyên chuyến']||0,S.rev), ghepPct=pct(nvBucket['Vận tải trục hàng ghép']||0,S.rev);
+  const first=perMonth[0], last=perMonth[5];
+  const laiDropPct=first.lai?(first.lai-last.lai)/first.lai*100:0;
+  const top3Share=pct(custArr.slice(0,3).reduce((s,x)=>s+x.dt,0),S.rev);
+
+  const insights=[
+    {t:'Lãi gộp giảm liên tục',b:F(first.lai)+' đ (T1) → '+F(last.lai)+' đ (T6), giảm '+F1(laiDropPct)+'%. Một phần do giá dầu thế giới tăng vọt trên 120 USD/thùng cuối tháng 4.'},
+    {t:'Cơ cấu nghiệp vụ lệch mục tiêu',b:'"Nguyên chuyến trục" đạt '+F1(nchuyenPct)+'% (KH 55%), trong khi "hàng ghép" chỉ '+F1(ghepPct)+'% (KH 35%) — cần đẩy mạnh hàng ghép để tối ưu chi phí/km.'},
+    {t:'Tập trung khách hàng cao',b:'Đạt '+F1(planPct)+'% kế hoạch doanh thu H1, nhưng top 3 khách hàng chiếm '+F1(top3Share)+'% doanh thu — cần mở rộng thêm khách hàng để giảm rủi ro.'},
+  ];
+  document.getElementById('insights').innerHTML=insights.map((it,i)=>'<div class="ins"><div class="num">'+(i+1)+'</div><div class="txt"><b>'+it.t+'</b><span>'+it.b+'</span></div></div>').join('');
+}
+
+async function loadLive(){
+  try{const res=await fetch(SHEET_CSV,{cache:'no-store'});const txt=await res.text();const O=normalize(parseCSV(txt));if(O.length)ORDERS=O;render();}catch(e){}
+  try{BDDATA=await fetchCost('1371715147',0,1,9,1,4,'Bảo Dưỡng_Sửa Chữa');render();}catch(e){}
+  try{CKDATA=await fetchCost('1598506940',0,2,4);render();}catch(e){}
+  try{VETCDATA=await fetchCost('736934312',23,21,24,1.08);render();}catch(e){}
+  try{FUEL=await fetchCost('0',1,2,9);render();}catch(e){}
+  try{URE=await fetchCost('NHAP_URE',1,2,9);render();}catch(e){}
+  try{LUONGDATA=await fetchLuong('NHAP_LUONG TX');render();}catch(e){}
+}
+document.getElementById('reload').addEventListener('click',loadLive);
+loadLive();
+</script>
+</body>
+</html>
