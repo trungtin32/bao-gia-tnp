@@ -239,9 +239,9 @@ function renderT3(rows){
     return{ncc,n:a.length,dt,cp,lai:dt-cp,no,debtAll};
   });
   arr.sort((x,y)=>y.dt-x.dt);const T=arr.reduce((s,x)=>({n:s.n+x.n,dt:s.dt+x.dt,cp:s.cp+x.cp,lai:s.lai+x.lai,no:s.no+x.no,debtAll:s.debtAll+x.debtAll}),{n:0,dt:0,cp:0,lai:0,no:0,debtAll:0});
-  document.getElementById('t3').innerHTML='<thead><tr><th class="l">Nhà cung cấp</th><th>Đơn</th><th>Doanh thu</th><th>CP NCC</th><th>Lãi</th><th>Còn nợ NCC (kỳ)</th><th>Nợ NCC lũy tiến (toàn bộ)</th></tr></thead><tbody>'+
-    arr.map(x=>'<tr><td class="l">'+x.ncc+'</td><td>'+x.n+'</td><td>'+F(x.dt)+'</td><td>'+F(x.cp)+'</td><td>'+F(x.lai)+'</td><td>'+(x.no>0?'<span class="pill p-warn">'+F(x.no)+'</span>':'0')+'</td><td>'+(x.debtAll>0?'<span class="pill p-warn">'+F(x.debtAll)+'</span>':'0')+'</td></tr>').join('')+
-    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+F(T.dt)+'</td><td>'+F(T.cp)+'</td><td>'+F(T.lai)+'</td><td>'+F(T.no)+'</td><td>'+F(T.debtAll)+'</td></tr></tfoot>';
+  document.getElementById('t3').innerHTML='<thead><tr><th class="l">Nhà cung cấp</th><th>Đơn</th><th>Doanh thu</th><th>CP NCC</th><th>Lãi</th><th>% Lãi/DT</th><th>Còn nợ NCC (kỳ)</th><th>Nợ NCC lũy tiến (toàn bộ)</th></tr></thead><tbody>'+
+    arr.map(x=>'<tr><td class="l">'+x.ncc+'</td><td>'+x.n+'</td><td>'+F(x.dt)+'</td><td>'+F(x.cp)+'</td><td>'+F(x.lai)+'</td><td>'+F1(pct(x.lai,x.dt))+'%</td><td>'+(x.no>0?'<span class="pill p-warn">'+F(x.no)+'</span>':'0')+'</td><td>'+(x.debtAll>0?'<span class="pill p-warn">'+F(x.debtAll)+'</span>':'0')+'</td></tr>').join('')+
+    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+F(T.dt)+'</td><td>'+F(T.cp)+'</td><td>'+F(T.lai)+'</td><td>'+F1(pct(T.lai,T.dt))+'%</td><td>'+F(T.no)+'</td><td>'+F(T.debtAll)+'</td></tr></tfoot>';
 }
 function renderT5(rows){
   const g=groupBy(rows,o=>o.nghiepVu);let arr=Object.entries(g).map(([nv,a])=>({nv,n:a.length,dt:a.reduce((s,o)=>s+o.cuoc,0)}));
