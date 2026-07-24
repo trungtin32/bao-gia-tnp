@@ -31,7 +31,12 @@ p.cap{color:var(--muted);font-size:12.5px;margin:2px 0 14px}
 .ctlrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:2px 0 14px}
 .ctlrow label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
 .ctlrow select{padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;color:var(--ink);min-width:220px}
+.ctlrow input[type=date]{padding:6.5px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;color:var(--ink)}
 .chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);cursor:pointer;user-select:none}
+.presets{display:flex;gap:6px;flex-wrap:wrap}
+.pbtn{padding:6.5px 12px;border:1px solid var(--line);border-radius:999px;font-size:12px;font-weight:600;background:#fff;color:var(--ink);cursor:pointer}
+.pbtn.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.sep{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
 .scroll{overflow-x:auto}
 table.t{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
 table.t th{background:var(--brand);color:#fff;text-align:right;padding:9px 10px;font-size:11.5px;font-weight:600;white-space:nowrap}
@@ -66,7 +71,7 @@ footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);color:v
   </div>
 
   <div class="note">
-    <b>Nợ phải thu</b> chỉ tính các đơn có trạng thái <b>"Đã giao hàng"</b> nhưng chưa thanh toán. Các đơn đang vận chuyển hoặc chờ lấy hàng (chưa hoàn tất giao hàng) <b>không</b> được tính vào công nợ, dù chưa thanh toán.
+    <b>Nợ phải thu</b> chỉ tính các đơn có trạng thái <b>"Đã giao hàng"</b> nhưng chưa thanh toán. Các đơn đang vận chuyển hoặc chờ lấy hàng (chưa hoàn tất giao hàng) <b>không</b> được tính vào công nợ, dù chưa thanh toán. Công nợ luôn tính theo <b>toàn bộ lịch sử</b> đơn hàng, không bị ảnh hưởng bởi bộ lọc thời gian bên dưới — bộ lọc thời gian chỉ áp dụng cho doanh thu/đã thu theo kỳ.
   </div>
 
   <div class="kpis" id="kpis"></div>
@@ -74,6 +79,18 @@ footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);color:v
   <div class="card">
     <p class="cap">Doanh thu từng tháng theo khách hàng, kèm công nợ phải thu (đơn đã giao hàng, chưa thanh toán). Bấm tiêu đề cột để sắp xếp.</p>
     <div class="ctlrow">
+      <label>Thời gian</label>
+      <div class="presets" id="presets">
+        <button class="pbtn on" data-p="all" type="button">Toàn bộ</button>
+        <button class="pbtn" data-p="thisMonth" type="button">Tháng này</button>
+        <button class="pbtn" data-p="lastMonth" type="button">Tháng trước</button>
+        <button class="pbtn" data-p="thisQuarter" type="button">Quý này</button>
+        <button class="pbtn" data-p="h1" type="button">6T đầu 2026</button>
+      </div>
+      <input type="date" id="dFrom">
+      <span style="color:var(--muted);font-size:12px">–</span>
+      <input type="date" id="dTo">
+      <div class="sep"></div>
       <label>Lọc khách hàng</label>
       <select id="custSel"><option value="">— Tất cả khách hàng —</option></select>
       <label class="chk"><input type="checkbox" id="onlyDebt"> Chỉ hiện khách còn nợ</label>
@@ -102,22 +119,34 @@ let ORDERS=[];
 function setStat(t,cls){const e=document.getElementById('livestat');e.textContent=t;e.className='livestat '+(cls||'');}
 
 let sortKey='revTotal', sortDir=-1;
+let rangeFrom=null, rangeTo=null; // yyyy-mm-dd hoặc null = không giới hạn
+let activePreset='all';
+
+function odate(o){return o.ngayVC||o.ngayNhan;}
+function inRange(d){if(!d)return false;if(rangeFrom&&d<rangeFrom)return false;if(rangeTo&&d>rangeTo)return false;return true;}
+function periodOrders(){return (rangeFrom||rangeTo)?ORDERS.filter(o=>inRange(odate(o))):ORDERS;}
 
 function monthKeysFromOrders(){
   const set=new Set();
-  ORDERS.forEach(o=>{const d=o.ngayVC||o.ngayNhan;if(d)set.add(d.slice(0,7));});
+  periodOrders().forEach(o=>{const d=odate(o);if(d)set.add(d.slice(0,7));});
   return Array.from(set).sort();
 }
 function monthLabel(ym){const mo=+ym.slice(5,7);return 'T'+mo+'/'+ym.slice(2,4);}
 
 function computeCustArr(months){
-  const byCust=groupBy(ORDERS,o=>o.khach||'(không tên)');
-  return Object.entries(byCust).map(([kh,a])=>{
+  const pOrders=periodOrders();
+  const byCustPeriod=groupBy(pOrders,o=>o.khach||'(không tên)');
+  const byCustAll=groupBy(ORDERS,o=>o.khach||'(không tên)');
+  const names=new Set([...Object.keys(byCustPeriod),...Object.keys(byCustAll)]);
+  return Array.from(names).map(kh=>{
+    const a=byCustPeriod[kh]||[];
+    const allA=byCustAll[kh]||[];
     const byMonth={};
     months.forEach(m=>byMonth[m]=0);
-    a.forEach(o=>{const d=o.ngayVC||o.ngayNhan;if(d)byMonth[d.slice(0,7)]=(byMonth[d.slice(0,7)]||0)+o.cuoc;});
+    a.forEach(o=>{const d=odate(o);if(d)byMonth[d.slice(0,7)]=(byMonth[d.slice(0,7)]||0)+o.cuoc;});
     const revTotal=a.reduce((s,o)=>s+o.cuoc,0);
-    const debtOrders=a.filter(o=>delivered(o.trangThai)&&!paid(o.ttCongNo));
+    // Nợ phải thu luôn tính trên TOÀN BỘ lịch sử đơn hàng, không phụ thuộc bộ lọc thời gian
+    const debtOrders=allA.filter(o=>delivered(o.trangThai)&&!paid(o.ttCongNo));
     const debt=debtOrders.reduce((s,o)=>s+o.cuoc,0);
     const thu=a.filter(o=>paid(o.ttCongNo)).reduce((s,o)=>s+o.cuoc,0);
     return{kh,n:a.length,byMonth,revTotal,debt,debtN:debtOrders.length,thu,pctthu:pct(thu,revTotal)};
@@ -134,11 +163,12 @@ function render(){
   const totalRev=arr.reduce((s,x)=>s+x.revTotal,0);
   const totalDebtN=arr.reduce((s,x)=>s+x.debtN,0);
   const totalThu=arr.reduce((s,x)=>s+x.thu,0);
+  const pOrdersN=periodOrders().length;
   document.getElementById('kpis').innerHTML=[
-    ['brand','Tổng nợ phải thu',F(totalDebt)+' đ',totalDebtN+' đơn đã giao chưa thanh toán'],
-    ['','Số khách còn nợ',custWithDebt+' khách','trên '+arr.length+' khách có phát sinh'],
-    ['','Tổng doanh thu (toàn bộ)',F(totalRev)+' đ',ORDERS.length+' đơn'],
-    ['','Đã thu',F(totalThu)+' đ',F1(pct(totalThu,totalRev))+'% doanh thu'],
+    ['brand','Tổng nợ phải thu',F(totalDebt)+' đ',totalDebtN+' đơn đã giao chưa thanh toán · toàn bộ lịch sử'],
+    ['','Số khách còn nợ',custWithDebt+' khách','trên '+arr.filter(x=>x.debt>0||x.revTotal>0).length+' khách có phát sinh'],
+    ['','Tổng doanh thu (theo kỳ)',F(totalRev)+' đ',pOrdersN+' đơn'],
+    ['','Đã thu (theo kỳ)',F(totalThu)+' đ',F1(pct(totalThu,totalRev))+'% doanh thu kỳ'],
   ].map(x=>'<div class="kpi '+x[0]+'"><div class="lab">'+x[1]+'</div><div class="val">'+x[2]+'</div><div class="x">'+x[3]+'</div></div>').join('');
 
   // dropdown (giữ lựa chọn hiện tại nếu còn hợp lệ)
@@ -176,7 +206,7 @@ function renderTable(){
 
   const arrow=k=>sortKey===k?(sortDir===1?' ▲':' ▼'):'';
   const monthHeaders=months.map(m=>'<th data-k="m_'+m+'">'+monthLabel(m)+arrow('m_'+m)+'</th>').join('');
-  document.getElementById('tDebt').innerHTML='<thead><tr><th class="l" data-k="kh">Khách hàng'+arrow('kh')+'</th><th data-k="n">Đơn</th>'+monthHeaders+'<th data-k="revTotal">Tổng doanh thu'+arrow('revTotal')+'</th><th data-k="thu">Đã thu'+arrow('thu')+'</th><th class="debtcol" data-k="debt">Nợ phải thu'+arrow('debt')+'</th><th data-k="pctthu">% Thu'+arrow('pctthu')+'</th></tr></thead><tbody>'+
+  document.getElementById('tDebt').innerHTML='<thead><tr><th class="l" data-k="kh">Khách hàng'+arrow('kh')+'</th><th data-k="n">Đơn</th>'+monthHeaders+'<th data-k="revTotal">Doanh thu (kỳ)'+arrow('revTotal')+'</th><th data-k="thu">Đã thu (kỳ)'+arrow('thu')+'</th><th class="debtcol" data-k="debt">Nợ phải thu (toàn bộ)'+arrow('debt')+'</th><th data-k="pctthu">% Thu (kỳ)'+arrow('pctthu')+'</th></tr></thead><tbody>'+
     view.map(x=>'<tr><td class="l">'+x.kh+'</td><td>'+x.n+'</td>'+months.map(m=>'<td>'+(x.byMonth[m]?F(x.byMonth[m]):'')+'</td>').join('')+'<td>'+F(x.revTotal)+'</td><td>'+F(x.thu)+'</td><td class="debtcol">'+(x.debt>0?'<span class="pill p-bad">'+F(x.debt)+'</span>':'0')+'</td><td>'+F1(pct(x.thu,x.revTotal))+'%</td></tr>').join('')+
     '</tbody>'+(selVal?'':'<tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td>'+months.map(m=>'<td>'+F(T.byMonth[m]||0)+'</td>').join('')+'<td>'+F(T.revTotal)+'</td><td>'+F(T.thu)+'</td><td class="debtcol">'+F(T.debt)+'</td><td>'+F1(pct(T.thu,T.revTotal))+'%</td></tr></tfoot>');
 
@@ -203,6 +233,41 @@ async function loadLive(){
     render();
   }catch(e){setStat('⚠ Không tải được dữ liệu — thử lại sau','err');}
 }
+
+function ymd(d){return d.toISOString().slice(0,10);}
+function presetRange(p){
+  const now=new Date(); const y=now.getFullYear(), m=now.getMonth();
+  if(p==='all')return[null,null];
+  if(p==='thisMonth')return[ymd(new Date(y,m,1)),ymd(new Date(y,m+1,0))];
+  if(p==='lastMonth')return[ymd(new Date(y,m-1,1)),ymd(new Date(y,m,0))];
+  if(p==='thisQuarter'){const q=Math.floor(m/3);return[ymd(new Date(y,q*3,1)),ymd(new Date(y,q*3+3,0))];}
+  if(p==='h1')return['2026-01-01','2026-06-30'];
+  return[null,null];
+}
+function applyPreset(p){
+  activePreset=p;
+  const[f,t]=presetRange(p);
+  rangeFrom=f;rangeTo=t;
+  document.getElementById('dFrom').value=f||'';
+  document.getElementById('dTo').value=t||'';
+  document.querySelectorAll('#presets .pbtn').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  render();
+}
+document.querySelectorAll('#presets .pbtn').forEach(b=>{
+  b.addEventListener('click',()=>applyPreset(b.dataset.p));
+});
+document.getElementById('dFrom').addEventListener('change',()=>{
+  rangeFrom=document.getElementById('dFrom').value||null;
+  activePreset='custom';
+  document.querySelectorAll('#presets .pbtn').forEach(b=>b.classList.remove('on'));
+  render();
+});
+document.getElementById('dTo').addEventListener('change',()=>{
+  rangeTo=document.getElementById('dTo').value||null;
+  activePreset='custom';
+  document.querySelectorAll('#presets .pbtn').forEach(b=>b.classList.remove('on'));
+  render();
+});
 
 document.getElementById('genDate').textContent=new Date().toLocaleDateString('vi-VN');
 document.getElementById('reload').addEventListener('click',loadLive);
