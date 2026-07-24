@@ -234,7 +234,7 @@ async function loadLive(){
   }catch(e){setStat('⚠ Không tải được dữ liệu — thử lại sau','err');}
 }
 
-function ymd(d){return d.toISOString().slice(0,10);}
+function ymd(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+dd;}
 function presetRange(p){
   const now=new Date(); const y=now.getFullYear(), m=now.getMonth();
   if(p==='all')return[null,null];
