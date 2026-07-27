@@ -120,7 +120,7 @@ const B = {"fallbackOrders": [{"maDon": "001NC0625", "khach": "THU HOÀNG", "nga
 let ORDERS=B.fallbackOrders; let FUEL=B.fuel, URE=B.ure; const MFIX=B.mfix, MFIXM=B.mfixMonth;
 const SHEET_CSV="https://docs.google.com/spreadsheets/d/1c5HtmjEDWYnRvJXQS8OcAJaRUkSWF5ICAmcJjOl80QQ/export?format=csv&gid=872982324";
 const COST_ID="1mRA8DoTp51DfU2kkk2ZnMnejVkM3vweGHHD2sO67gxw";
-const OWN_SET=new Set(["50H-756.77","50H-260.74","50H-904.92","50E-658.83","50H-903.08","50H-449.61","50E-673.32","50E-533.54"]);
+const OWN_SET=new Set(["50H-756.77","50H-260.74","50H-904.92","50E-658.83","50H-903.08","50H-449.61","50E-673.32","50E-533.54","50E-398.51"]);
 let BDDATA=[],CKDATA=[],VETCDATA=[];
 function vbsx(s){const m=/5\d[A-Z]-\d{2,3}\.\d{2}/.exec(s||'');if(!m)return'';let b=m[0];if(b==='50H-44.61')b='50H-449.61';return b;}
 async function fetchCost(src,dI,bI,aI,div,catI,catVal){div=div||1;const u=/^\d+$/.test(String(src))?'https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src:'https://docs.google.com/spreadsheets/d/'+COST_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(src)+'&headers=0';const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<=Math.max(dI,bI,aI))continue;if(catVal!==undefined&&(r[catI]||'').trim()!==catVal)continue;const d=vdate(r[dI]),b=vbsx(r[bI]),a=vnum(r[aI])/div;if(d&&d.slice(0,4)==='2026'&&OWN_SET.has(b)&&a)out.push({b,d,a:Math.round(a)});}return out;}
@@ -141,7 +141,7 @@ async function loadLive(){setStat('⟳ Đang tải dữ liệu mới…','load')
   try{BDDATA=await fetchCost('1371715147',0,1,9,1,4,'Bảo Dưỡng_Sửa Chữa');render();}catch(e){}
   try{CKDATA=await fetchCost('1598506940',0,2,4);render();}catch(e){}
   try{VETCDATA=await fetchCost('736934312',23,21,24,1.08);render();}catch(e){}
-  try{FUEL=await fetchCost('0',1,2,9);render();}catch(e){}
+  try{FUEL=await fetchCost('0',1,2,9);FUEL=FUEL.map(x=>x.d<'2026-03-26'?{...x,a:Math.round(x.a/1.08)}:x);render();}catch(e){}
   try{URE=await fetchCost('NHAP_URE',1,2,9);render();}catch(e){}
   try{LUONGDATA=await fetchLuong('NHAP_LUONG TX');render();}catch(e){}}
 const F=n=>new Intl.NumberFormat('vi-VN').format(Math.round(n||0));
