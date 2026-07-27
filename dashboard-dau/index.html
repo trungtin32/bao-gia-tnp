@@ -132,40 +132,19 @@ const COL = {date:1,plate:2,driver:3,litDo:7,donGia:8,cost:9,km:10,tieuThu:13,dm
 let allRows = [];
 let chartRate = null, chartCost = null;
 
+// Parser CSV chuẩn (hỗ trợ field chứa dấu phẩy/ngoặc kép), dùng chung pattern với các báo cáo khác trong dự án
+function parseCSV(text){const rows=[];let row=[],field='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else q=false;}else field+=c;}else{if(c==='"')q=true;else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}else if(c==='\r'){}else field+=c;}}if(field!==''||row.length){row.push(field);rows.push(row);}return rows;}
+function vnum(s){if(typeof s==='number')return s;s=(s||'').trim().replace(/\./g,'').replace(/ /g,'').replace(/,/g,'.');const v=parseFloat(s);return isNaN(v)?0:v;}
+
 function parseDate(v) {
   if (!v) return null;
+  if (v instanceof Date) return v;
   if (typeof v === 'number') return new Date((v - 25569) * 86400000);
-  const m = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
-  if (m) return new Date(+m[1], +m[2], +m[3]);
-  // CSV: dd/mm/yyyy hoặc d/m/yyyy
-  const d1 = String(v).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (d1) return new Date(+d1[3], +d1[2]-1, +d1[1]);
-  // CSV: yyyy-mm-dd
-  const d2 = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (d2) return new Date(+d2[1], +d2[2]-1, +d2[3]);
+  const m1 = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec(String(v).trim());
+  if (m1) { let d=+m1[1], mo=+m1[2], y=+m1[3]; if (y<100) y+=2000; return new Date(y, mo-1, d); }
+  const m2 = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
+  if (m2) return new Date(+m2[1], +m2[2], +m2[3]);
   return null;
-}
-
-function parseCSV(text) {
-  const rows = [];
-  let row = [], field = '', inQ = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQ) {
-      if (c === '"') { if (text[i+1] === '"') { field += '"'; i++; } else inQ = false; }
-      else field += c;
-    } else {
-      if (c === '"') inQ = true;
-      else if (c === ',') { row.push(field); field = ''; }
-      else if (c === '\r' || c === '\n') {
-        if (c === '\r' && text[i+1] === '\n') i++;
-        row.push(field); field = '';
-        rows.push(row); row = [];
-      } else field += c;
-    }
-  }
-  if (row.length || field) { row.push(field); rows.push(row); }
-  return rows;
 }
 
 function fmt(n, dec=0) {
@@ -178,59 +157,30 @@ function fmtM(n) { return (n/1e6).toFixed(2) + ' tr'; }
 async function loadData() {
   const stat = document.getElementById('livestat');
   stat.className = 'livestat load'; stat.textContent = '● Đang tải...';
-  let loaded = false;
-
-  // Method 1: CSV export với timeout 8s (bypass basic filter của Sheets)
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SID}/export?format=csv&sheet=NHAP_DAU`;
-    const res = await fetch(csvUrl, {cache: 'no-store', signal: ctrl.signal});
-    clearTimeout(timer);
+    // Đọc qua export?format=csv&gid= (không bị ảnh hưởng bởi Bộ lọc chung nhân viên bật trên sheet nguồn),
+    // KHÔNG dùng gviz/tq vì gviz phản ánh trạng thái Bộ lọc chung hiện tại của sheet, dễ thiếu dữ liệu.
+    const url = `https://docs.google.com/spreadsheets/d/${SID}/export?format=csv&gid=0`;
+    const res = await fetch(url, {cache:'no-store'});
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    if (text.trim().startsWith('<')) throw new Error('Got HTML not CSV');
-    const csvRows = parseCSV(text);
-    // Tự động tìm dòng dữ liệu đầu tiên (có biển số xe)
-    let skip = 0;
-    for (let i = 0; i < Math.min(csvRows.length, 10); i++) {
-      if (csvRows[i][COL.plate] && /\d+[A-Z]-\d+/.test(String(csvRows[i][COL.plate]))) break;
-      skip = i + 1;
-    }
-    const parsed = csvRows.slice(skip).map(cols =>
-      cols.map(v => {
-        if (v === '' || v == null) return null;
-        const n = parseFloat(v.replace(/[, ]/g, ''));
-        return (!isNaN(n) && /^-?[\d\s,]+\.?\d*$/.test(v.trim())) ? n : v;
-      })
-    ).filter(r => r[COL.plate]);
-    if (parsed.length > 0) {
-      allRows = parsed; loaded = true;
-      stat.className = 'livestat ok'; stat.textContent = '● Trực tiếp';
-    }
-  } catch(e) { /* timeout hoặc CORS → fallback */ }
-
-  // Method 2: gviz JSON — luôn hoạt động, nhưng bị ảnh hưởng bởi bộ lọc cơ bản Sheets
-  if (!loaded) {
-    try {
-      const gvizUrl = `https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:json&range=NHAP_DAU!A:R&headers=4`;
-      const res = await fetch(gvizUrl, {cache: 'no-store'});
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const text = await res.text();
-      const s = text.indexOf('{'), e2 = text.lastIndexOf('}');
-      const json = JSON.parse(text.slice(s, e2 + 1));
-      allRows = json.table.rows
-        .map(r => r.c.map(c => (c ? c.v : null)))
-        .filter(r => r[COL.plate]);
-      loaded = true;
-      stat.className = 'livestat ok'; stat.textContent = '● Trực tiếp';
-    } catch(e) {
-      stat.className = 'livestat err'; stat.textContent = '● Lỗi';
-      console.error(e);
-    }
+    const rows = parseCSV(text).slice(4); // bỏ 4 dòng tiêu đề, giống quy ước các báo cáo khác trong dự án
+    allRows = rows
+      .filter(r => r.length > COL.dmKhoan && (r[COL.plate]||'').trim())
+      .map(r => {
+        const out = r.slice();
+        out[COL.date] = parseDate(r[COL.date]);
+        [COL.litDo, COL.donGia, COL.cost, COL.km, COL.tieuThu, COL.dmThuc, COL.dmKhoan].forEach(ci => { out[ci] = vnum(r[ci]); });
+        return out;
+      });
+    stat.className = 'livestat ok'; stat.textContent = '● Trực tiếp';
+    populateCarFilter();
+    setDefaultDates();
+    render();
+  } catch(e) {
+    stat.className = 'livestat err'; stat.textContent = '● Lỗi';
+    console.error(e);
   }
-
-  if (loaded) { populateCarFilter(); setDefaultDates(); render(); }
 }
 
 function populateCarFilter() {
@@ -242,10 +192,9 @@ function populateCarFilter() {
 }
 
 function setDefaultDates() {
-  // Mặc định: không giới hạn ngày → hiện toàn bộ dữ liệu
-  document.getElementById('from').value = '';
-  document.getElementById('to').value = '';
-  document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', b.dataset.p === 'all'));
+  const now = new Date();
+  document.getElementById('from').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  document.getElementById('to').value = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
 }
 
 function getFiltered() {
@@ -270,7 +219,7 @@ function aggregate(rows) {
     const plate = r[COL.plate]; if (!plate) return;
     if (!map[plate]) map[plate] = {
       plate, driver: r[COL.driver],
-      trips: 0, litDo: 0, litDM: 0, km: 0, tieuThu: 0, kmForTieu: 0,
+      trips: 0, litDo: 0, km: 0, tieuThu: 0, kmForTieu: 0,
       cost: 0, warns: 0, dmKhoan: DM_KHOAN[plate] || 20
     };
     const e = map[plate];
@@ -279,27 +228,26 @@ function aggregate(rows) {
     e.cost += (r[COL.cost] || 0);
     const km = r[COL.km] || 0;
     e.km += km;
-    // Lít tính ĐM = km × định mức thực / 100 (mỗi chuyến)
-    const dmT = r[COL.dmThuc] || 0;
-    if (km > 0 && dmT > 0) e.litDM += km * dmT / 100;
-    // Tiêu thụ tổng hợp
+    // Only count tiêu thụ when both km and tiêu thụ are valid
     const tt = r[COL.tieuThu] || 0;
-    if (km > 0 && tt > 0) { e.tieuThu += tt; e.kmForTieu += km; }
+    if (km > 0 && tt > 0) {
+      e.tieuThu += tt;
+      e.kmForTieu += km;
+    }
     const cb = r[COL.canhBao];
     if (cb && String(cb).trim().length > 0) e.warns++;
   });
 
   return Object.values(map).map(e => {
-    // ĐM thực = Σ tieuThu / Σ km × 100 (khớp công thức sheet tổng hợp)
-    if (e.tieuThu > 0 && e.km > 50) {
-      e.dmThuc = e.tieuThu / e.km * 100;
+    // Prefer tiêu thụ-based rate if we have enough data, else fall back to lít đổ / km
+    if (e.kmForTieu > 50) {
+      e.dmThuc = e.tieuThu / e.kmForTieu * 100;
     } else if (e.km > 50) {
       e.dmThuc = e.litDo / e.km * 100;
     } else {
       e.dmThuc = null;
     }
     e.chenh = e.dmThuc != null ? (e.dmThuc - e.dmKhoan) : null;
-    e.giaTB = e.litDo > 0 ? e.cost / e.litDo : null;
     e.costPerKm = e.km > 0 ? (e.cost / e.km * 100) : null;
     return e;
   }).sort((a,b) => b.cost - a.cost);
@@ -364,60 +312,66 @@ function renderTable(vehs) {
   const totKm = vehs.reduce((s,v) => s + v.km, 0);
   const totTrips = vehs.reduce((s,v) => s + v.trips, 0);
 
-  const totLitDM = vehs.reduce((s,v) => s + (v.tieuThu || 0), 0);
-  const totDMthuc = totLitDM > 0 && totKm > 0 ? totLitDM / totKm * 100 : null;
-  const avgGiaTB = totLit > 0 ? totCost / totLit : null;
-
   let html = `<table class="t"><thead><tr>
     <th class="l">Biển số</th>
+    <th class="l">Tài xế</th>
     <th>Số lần</th>
-    <th>Tổng lít</th>
-    <th>Lít tính ĐM</th>
     <th>KM chạy</th>
-    <th>ĐM thực</th>
-    <th>ĐM khoán</th>
+    <th>Lít đổ</th>
+    <th>DM thực</th>
+    <th>DM khoán</th>
     <th>Chênh lệch</th>
-    <th>Giá TB (đ/L)</th>
-    <th>Tổng tiền (đ)</th>
+    <th>Chi phí (₫)</th>
+    <th>CP/100km</th>
     <th>Cảnh báo</th>
   </tr></thead><tbody>`;
 
+  const maxCost = Math.max(...vehs.map(v => v.cost), 1);
+
   vehs.forEach(v => {
     const chenh = v.chenh;
-    const pillCls = chenh == null ? '' : chenh > 0 ? 'p-bad' : chenh > -1 ? 'p-warn' : 'p-good';
+    const pillCls = chenh == null ? '' : chenh > 2 ? 'p-bad' : chenh > 0 ? 'p-warn' : 'p-good';
     const chenhStr = chenh == null ? '—' : (chenh > 0 ? '+' : '') + chenh.toFixed(2);
     const dmStr = v.dmThuc != null ? v.dmThuc.toFixed(2) : '—';
-    const litDMStr = v.tieuThu > 0 ? fmt(v.tieuThu, 1) : '—';
+    const barColor = chenh == null ? '#94a3b8' : chenh > 2 ? '#ef4444' : chenh > 0 ? '#f59e0b' : '#22c55e';
+    const barPct = v.dmThuc ? Math.min(v.dmThuc / (v.dmKhoan * 1.5) * 100, 100) : 0;
+    const costBarPct = Math.round(v.cost / maxCost * 100);
 
     html += `<tr>
       <td class="l"><strong>${v.plate}</strong></td>
+      <td class="l" style="color:var(--muted)">${v.driver || '—'}</td>
       <td>${v.trips}</td>
-      <td>${fmt(v.litDo, 1)}</td>
-      <td>${litDMStr}</td>
       <td>${fmt(Math.round(v.km))}</td>
-      <td>${dmStr}</td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar"><i style="width:${costBarPct}%;background:#d97706"></i></div>
+          ${fmt(v.litDo, 1)}
+        </div>
+      </td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar"><i style="width:${barPct}%;background:${barColor}"></i></div>
+          ${dmStr}
+        </div>
+      </td>
       <td>${v.dmKhoan}</td>
       <td><span class="pill ${pillCls}">${chenhStr}</span></td>
-      <td>${v.giaTB ? fmt(Math.round(v.giaTB)) : '—'}</td>
       <td>${fmt(Math.round(v.cost))}</td>
+      <td>${v.costPerKm ? fmt(Math.round(v.costPerKm)) : '—'}</td>
       <td>${v.warns > 0
         ? `<span class="warn-badge">⚠ ${v.warns}</span>`
-        : '<span class="pill p-good">✓</span>'}</td>
+        : '<span class="pill p-good">OK</span>'}</td>
     </tr>`;
   });
 
   html += `</tbody><tfoot><tr>
-    <td class="l">TỔNG CỘNG</td>
+    <td class="l" colspan="2">TỔNG CỘNG</td>
     <td>${fmt(totTrips)}</td>
-    <td>${fmt(totLit, 1)}</td>
-    <td>${totLitDM > 0 ? fmt(totLitDM, 1) : '—'}</td>
     <td>${fmt(Math.round(totKm))}</td>
-    <td>${totDMthuc ? totDMthuc.toFixed(2) : '—'}</td>
-    <td></td>
-    <td></td>
-    <td>${avgGiaTB ? fmt(Math.round(avgGiaTB)) : '—'}</td>
+    <td>${fmt(totLit, 1)}</td>
+    <td colspan="3"></td>
     <td>${fmt(Math.round(totCost))}</td>
-    <td></td>
+    <td colspan="2"></td>
   </tr></tfoot></table>`;
 
   document.getElementById('tbl-wrap').innerHTML = html;
@@ -488,9 +442,8 @@ document.getElementById('presets').addEventListener('click', e => {
     from = new Date(2024, 0, 1);
     to   = new Date(now.getFullYear(), 11, 31);
   }
-  const loc = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  document.getElementById('from').value = loc(from);
-  document.getElementById('to').value   = loc(to);
+  document.getElementById('from').value = from.toISOString().slice(0,10);
+  document.getElementById('to').value   = to.toISOString().slice(0,10);
   document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
   render();
 });
