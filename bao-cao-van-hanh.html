@@ -123,14 +123,14 @@ const COST_ID="1mRA8DoTp51DfU2kkk2ZnMnejVkM3vweGHHD2sO67gxw";
 const OWN_SET=new Set(["50H-756.77","50H-260.74","50H-904.92","50E-658.83","50H-903.08","50H-449.61","50E-673.32","50E-533.54","50E-398.51"]);
 let BDDATA=[],CKDATA=[],VETCDATA=[];
 function vbsx(s){const m=/5\d[A-Z]-\d{2,3}\.\d{2}/.exec(s||'');if(!m)return'';let b=m[0];if(b==='50H-44.61')b='50H-449.61';return b;}
-async function fetchCost(src,dI,bI,aI,div,catI,catVal){div=div||1;const u=/^\d+$/.test(String(src))?'https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src:'https://docs.google.com/spreadsheets/d/'+COST_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(src)+'&headers=0';const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<=Math.max(dI,bI,aI))continue;if(catVal!==undefined&&(r[catI]||'').trim()!==catVal)continue;const d=vdate(r[dI]),b=vbsx(r[bI]),a=vnum(r[aI])/div;if(d&&d.slice(0,4)==='2026'&&OWN_SET.has(b)&&a)out.push({b,d,a:Math.round(a)});}return out;}
+async function fetchCost(src,dI,bI,aI,div,catI,catVal){div=div||1;const u='https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src;const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<=Math.max(dI,bI,aI))continue;if(catVal!==undefined&&(r[catI]||'').trim()!==catVal)continue;const d=vdate(r[dI]),b=vbsx(r[bI]),a=vnum(r[aI])/div;if(d&&d.slice(0,4)==='2026'&&OWN_SET.has(b)&&a)out.push({b,d,a:Math.round(a)});}return out;}
 function bdByVeh(f,t){const m={};BDDATA.forEach(x=>{if(x.d>=f&&x.d<=t)m[x.b]=(m[x.b]||0)+x.a;});return m;}
 function ckByVeh(f,t){const m={};CKDATA.forEach(x=>{if(x.d>=f&&x.d<=t)m[x.b]=(m[x.b]||0)+x.a;});return m;}
 function vetcByVeh(f,t){const m={};VETCDATA.forEach(x=>{if(x.d>=f&&x.d<=t)m[x.b]=(m[x.b]||0)+x.a;});return m;}
 let LUONGDATA=[];
 function monthsInRange(f,t){const out=new Set();let y=+f.slice(0,4),m=+f.slice(5,7);const ty=+t.slice(0,4),tm=+t.slice(5,7);while(y<ty||(y===ty&&m<=tm)){out.add(y+'-'+String(m).padStart(2,'0'));m++;if(m>12){m=1;y++;}}return out;}
 function luongByVeh(f,t){const ms=monthsInRange(f,t);const m={};LUONGDATA.forEach(x=>{if(ms.has(x.ym))m[x.b]=(m[x.b]||0)+x.a;});return m;}
-async function fetchLuong(src){const u=/^\d+$/.test(String(src))?'https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src:'https://docs.google.com/spreadsheets/d/'+COST_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(src)+'&headers=0';const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<5)continue;const y=(r[0]||'').trim(),mo=(r[1]||'').trim(),b=vbsx(r[3]),a=vnum(r[4]);if(/^\d{4}$/.test(y)&&/^\d{1,2}$/.test(mo)&&OWN_SET.has(b)&&a)out.push({b,ym:y+'-'+String(+mo).padStart(2,'0'),a:Math.round(a)});}return out;}
+async function fetchLuong(src){const u='https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src;const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<5)continue;const y=(r[0]||'').trim(),mo=(r[1]||'').trim(),b=vbsx(r[3]),a=vnum(r[4]);if(/^\d{4}$/.test(y)&&/^\d{1,2}$/.test(mo)&&OWN_SET.has(b)&&a)out.push({b,ym:y+'-'+String(+mo).padStart(2,'0'),a:Math.round(a)});}return out;}
 function parseCSV(text){const rows=[];let row=[],field='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else q=false;}else field+=c;}else{if(c==='"')q=true;else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}else if(c==='\r'){}else field+=c;}}if(field!==''||row.length){row.push(field);rows.push(row);}return rows;}
 function vnum(s){s=(s||'').trim().replace(/\./g,'').replace(/ /g,'').replace(/,/g,'.');const v=parseFloat(s);return isNaN(v)?0:v;}
 function vdate(s){const m=/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec((s||'').trim());if(!m)return null;let d=+m[1],mo=+m[2],y=+m[3];if(y<100)y+=2000;const dt=new Date(Date.UTC(y,mo-1,d));if(dt.getUTCMonth()!==mo-1)return null;return dt.toISOString().slice(0,10);}
@@ -142,8 +142,8 @@ async function loadLive(){setStat('⟳ Đang tải dữ liệu mới…','load')
   try{CKDATA=await fetchCost('1598506940',0,2,4);render();}catch(e){}
   try{VETCDATA=await fetchCost('736934312',23,21,24,1.08);render();}catch(e){}
   try{FUEL=await fetchCost('0',1,2,9);FUEL=FUEL.map(x=>x.d<'2026-03-26'?{...x,a:Math.round(x.a/1.08)}:x);render();}catch(e){}
-  try{URE=await fetchCost('NHAP_URE',1,2,9);render();}catch(e){}
-  try{LUONGDATA=await fetchLuong('NHAP_LUONG TX');render();}catch(e){}}
+  try{URE=await fetchCost('695565677',1,2,9);render();}catch(e){}
+  try{LUONGDATA=await fetchLuong('456666513');render();}catch(e){}}
 const F=n=>new Intl.NumberFormat('vi-VN').format(Math.round(n||0));
 const F1=n=>new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(n||0);
 const pct=(a,b)=>b?a/b*100:0;
