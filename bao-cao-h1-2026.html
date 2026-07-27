@@ -154,8 +154,8 @@ function vnum(s){s=(s||'').trim().replace(/\./g,'').replace(/ /g,'').replace(/,/
 function vdate(s){const m=/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec((s||'').trim());if(!m)return null;let d=+m[1],mo=+m[2],y=+m[3];if(y<100)y+=2000;const dt=new Date(Date.UTC(y,mo-1,d));if(dt.getUTCMonth()!==mo-1)return null;return dt.toISOString().slice(0,10);}
 function cleanS(s){return (s||'').replace(/\s+/g,' ').trim();}
 function normalize(rows){const O=[];for(let i=4;i<rows.length;i++){let r=rows[i];if(!r)continue;while(r.length<32)r=r.concat('');const maDon=cleanS(r[1]),khach=cleanS(r[2]);if(!maDon&&!khach)continue;const ncc=cleanS(r[23]);O.push({maDon,khach,ngayNhan:vdate(r[4]),ngayVC:vdate(r[6]),ngayGiao:vdate(r[7]),bsx:cleanS(r[9])||'(chưa gán)',tenHang:cleanS(r[15]),kg:vnum(r[16]),cbm:vnum(r[17]),diemNhan:cleanS(r[18]),diemGiao:cleanS(r[19]),nghiepVu:cleanS(r[21])||'(khác)',cuoc:vnum(r[22]),ncc,cuocNCC:vnum(r[24]),ttNCC:cleanS(r[25]),surcharge:vnum(r[26])+vnum(r[27])+vnum(r[28]),trangThai:cleanS(r[29]),ttCongNo:cleanS(r[30]),own:ncc==='TNP LOG'||ncc===''});}return O;}
-async function fetchCost(src,dI,bI,aI,div,catI,catVal){div=div||1;const u=/^\d+$/.test(String(src))?'https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src:'https://docs.google.com/spreadsheets/d/'+COST_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(src)+'&headers=0';const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<=Math.max(dI,bI,aI))continue;if(catVal!==undefined&&(r[catI]||'').trim()!==catVal)continue;const d=vdate(r[dI]),b=vbsx(r[bI]),a=vnum(r[aI])/div;if(d&&d.slice(0,4)==='2026'&&OWN_SET.has(b)&&a)out.push({b,d,a:Math.round(a)});}return out;}
-async function fetchLuong(src){const u=/^\d+$/.test(String(src))?'https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src:'https://docs.google.com/spreadsheets/d/'+COST_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(src)+'&headers=0';const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<5)continue;const y=(r[0]||'').trim(),mo=(r[1]||'').trim(),b=vbsx(r[3]),a=vnum(r[4]);if(/^\d{4}$/.test(y)&&/^\d{1,2}$/.test(mo)&&OWN_SET.has(b)&&a)out.push({b,ym:y+'-'+String(+mo).padStart(2,'0'),a:Math.round(a)});}return out;}
+async function fetchCost(src,dI,bI,aI,div,catI,catVal){div=div||1;const u='https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src;const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<=Math.max(dI,bI,aI))continue;if(catVal!==undefined&&(r[catI]||'').trim()!==catVal)continue;const d=vdate(r[dI]),b=vbsx(r[bI]),a=vnum(r[aI])/div;if(d&&d.slice(0,4)==='2026'&&OWN_SET.has(b)&&a)out.push({b,d,a:Math.round(a)});}return out;}
+async function fetchLuong(src){const u='https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src;const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<5)continue;const y=(r[0]||'').trim(),mo=(r[1]||'').trim(),b=vbsx(r[3]),a=vnum(r[4]);if(/^\d{4}$/.test(y)&&/^\d{1,2}$/.test(mo)&&OWN_SET.has(b)&&a)out.push({b,ym:y+'-'+String(+mo).padStart(2,'0'),a:Math.round(a)});}return out;}
 
 let ORDERS=[],FUEL=[],URE=[],BDDATA=[],CKDATA=[],VETCDATA=[],LUONGDATA=[];
 const F_FROM='2026-01-01', F_TO='2026-06-30';
@@ -356,8 +356,8 @@ async function loadLive(){
   try{CKDATA=await fetchCost('1598506940',0,2,4);render();}catch(e){}
   try{VETCDATA=await fetchCost('736934312',23,21,24,1.08);render();}catch(e){}
   try{FUEL=await fetchCost('0',1,2,9);render();}catch(e){}
-  try{URE=await fetchCost('NHAP_URE',1,2,9);render();}catch(e){}
-  try{LUONGDATA=await fetchLuong('NHAP_LUONG TX');render();}catch(e){}
+  try{URE=await fetchCost('695565677',1,2,9);render();}catch(e){}
+  try{LUONGDATA=await fetchLuong('456666513');render();}catch(e){}
 }
 
 document.getElementById('genDate').textContent=new Date().toLocaleDateString('vi-VN');
