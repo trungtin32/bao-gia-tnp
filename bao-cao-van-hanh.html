@@ -209,7 +209,7 @@ function renderT2(rows,f,t,fx){
     const a=g[b]||[];const dt=a.reduce((s,o)=>s+o.cuoc,0);const bx=a.reduce((s,o)=>s+o.surcharge,0);
     const fuel=fuelM[b]||0;const ure=ureM[b]||0;const bdsc=bdM[b]||0;const khac=ckM[b]||0;const vetc=vetcM[b]||0;const luong=luongM[b]||0;
     const cp=fuel+ure+vetc+luong+bdsc+khac+bx;
-    const mm={},mh={};let short=0;for(const o of a){const u=(o.tua||'').trim();if(!u)continue;if(/^[\d.,]+$/.test(u)){const num=parseFloat(u.replace(',','.'));if(!isNaN(num)){const ym=(o.ngayNhan||'').slice(0,7);if(!ym)continue;if(num>=1)mm[ym]=Math.max(mm[ym]||0,num);else (mh[ym]=mh[ym]||new Set()).add(o.ngayNhan);}}else short++;}
+    const mm={},mh={};let short=0;for(const o of a){const u=(o.tua||'').trim();if(!u)continue;if(/^[\d.,]+$/.test(u)){const num=parseFloat(u.replace(',','.'));if(!isNaN(num)){const dN=o.ngayNhan||'';if(!dN||dN<f||dN>t)continue;const ym=dN.slice(0,7);if(num>=1)mm[ym]=Math.max(mm[ym]||0,num);else (mh[ym]=mh[ym]||new Set()).add(dN);}}else short++;}
     let tua=0;for(const ym of new Set([...Object.keys(mm),...Object.keys(mh)]))tua+=(mm[ym]||0)+0.5*((mh[ym]&&mh[ym].size)||0);
     return {b,n:a.length,tua,short,dt,fuel,ure,vetc,luong,bdsc,khac,bx,cp,lai:dt-cp};
   }).filter(x=>x.n>0||x.dt>0||x.fuel>0);
