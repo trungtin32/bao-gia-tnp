@@ -96,7 +96,7 @@ table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--b
 
   <div class="card">
     <h2><span class="tag">BẢNG 2</span> Chi tiết theo xe TNP LOG</h2>
-    <p class="cap">Doanh thu · Dầu · Ure · VETC · BD/SC · CP khác · BX+TB+PS theo ngày. Lương (★) cộng theo tháng. Tất cả đọc trực tiếp từ sheet, chỉ xe nhà TNP.</p>
+    <p class="cap">Doanh thu · Dầu · Ure · VETC · BD/SC · CP khác · BX+TB+PS theo ngày. Lương (★) cộng theo tháng. Tất cả đọc trực tiếp từ sheet, chỉ xe nhà TNP. Số tua = cộng dồn mốc tua cao nhất từng tháng (cột TUA THỰC HIỆN) · C.ngắn = số đơn chuyến ngắn nội miền, không tính vào tua.</p>
     <div class="scroll"><table class="t" id="t2"></table></div>
   </div>
 
@@ -135,7 +135,7 @@ function parseCSV(text){const rows=[];let row=[],field='',q=false;for(let i=0;i<
 function vnum(s){s=(s||'').trim().replace(/\./g,'').replace(/ /g,'').replace(/,/g,'.');const v=parseFloat(s);return isNaN(v)?0:v;}
 function vdate(s){const m=/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec((s||'').trim());if(!m)return null;let d=+m[1],mo=+m[2],y=+m[3];if(y<100)y+=2000;const dt=new Date(Date.UTC(y,mo-1,d));if(dt.getUTCMonth()!==mo-1)return null;return dt.toISOString().slice(0,10);}
 function cleanS(s){return (s||'').replace(/\s+/g,' ').trim();}
-function normalize(rows){const O=[];for(let i=4;i<rows.length;i++){let r=rows[i];if(!r)continue;while(r.length<32)r=r.concat('');const maDon=cleanS(r[1]),khach=cleanS(r[2]);if(!maDon&&!khach)continue;const ncc=cleanS(r[23]);O.push({maDon,khach,ngayNhan:vdate(r[4]),ngayVC:vdate(r[6]),ngayGiao:vdate(r[7]),bsx:cleanS(r[9])||'(chưa gán)',tenHang:cleanS(r[15]),kg:vnum(r[16]),cbm:vnum(r[17]),diemNhan:cleanS(r[18]),diemGiao:cleanS(r[19]),nghiepVu:cleanS(r[21])||'(khác)',cuoc:vnum(r[22]),ncc,cuocNCC:vnum(r[24]),ttNCC:cleanS(r[25]),surcharge:vnum(r[26])+vnum(r[27])+vnum(r[28]),trangThai:cleanS(r[29]),ttCongNo:cleanS(r[30]),own:ncc==='TNP LOG'||ncc===''});}return O;}
+function normalize(rows){const O=[];for(let i=4;i<rows.length;i++){let r=rows[i];if(!r)continue;while(r.length<32)r=r.concat('');const maDon=cleanS(r[1]),khach=cleanS(r[2]);if(!maDon&&!khach)continue;const ncc=cleanS(r[23]);O.push({maDon,khach,ngayNhan:vdate(r[4]),ngayVC:vdate(r[6]),ngayGiao:vdate(r[7]),bsx:cleanS(r[9])||'(chưa gán)',tenHang:cleanS(r[15]),kg:vnum(r[16]),cbm:vnum(r[17]),diemNhan:cleanS(r[18]),diemGiao:cleanS(r[19]),nghiepVu:cleanS(r[21])||'(khác)',tua:cleanS(r[20]),cuoc:vnum(r[22]),ncc,cuocNCC:vnum(r[24]),ttNCC:cleanS(r[25]),surcharge:vnum(r[26])+vnum(r[27])+vnum(r[28]),trangThai:cleanS(r[29]),ttCongNo:cleanS(r[30]),own:ncc==='TNP LOG'||ncc===''});}return O;}
 function setStat(t2,cls){const e=document.getElementById('livestat');if(e){e.textContent=t2;e.className='livestat '+(cls||'');}}
 async function loadLive(){setStat('⟳ Đang tải dữ liệu mới…','load');try{const res=await fetch(SHEET_CSV,{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);const txt=await res.text();const O=normalize(parseCSV(txt));if(!O.length)throw new Error('empty');ORDERS=O;setStat('● Trực tiếp · cập nhật '+new Date().toLocaleTimeString('vi-VN'),'ok');render();}catch(e){setStat('⚠ Không tải được dữ liệu mới — đang xem bản lưu '+(B.savedAt||''),'err');}
   try{BDDATA=await fetchCost('1371715147',0,1,9,1,4,'Bảo Dưỡng_Sửa Chữa');render();}catch(e){}
@@ -209,18 +209,20 @@ function renderT2(rows,f,t,fx){
     const a=g[b]||[];const dt=a.reduce((s,o)=>s+o.cuoc,0);const bx=a.reduce((s,o)=>s+o.surcharge,0);
     const fuel=fuelM[b]||0;const ure=ureM[b]||0;const bdsc=bdM[b]||0;const khac=ckM[b]||0;const vetc=vetcM[b]||0;const luong=luongM[b]||0;
     const cp=fuel+ure+vetc+luong+bdsc+khac+bx;
-    return {b,n:a.length,dt,fuel,ure,vetc,luong,bdsc,khac,bx,cp,lai:dt-cp};
+    const mm={};let short=0;for(const o of a){if(/ngắn/i.test(o.nghiepVu))short++;const u=(o.tua||'').trim();if(u&&/^[\d.,]+$/.test(u)){const num=parseFloat(u.replace(',','.'));if(!isNaN(num)){const ym=(o.ngayNhan||'').slice(0,7);if(ym)mm[ym]=Math.max(mm[ym]||0,num);}}}
+    const tua=Object.values(mm).reduce((s,v)=>s+v,0);
+    return {b,n:a.length,tua,short,dt,fuel,ure,vetc,luong,bdsc,khac,bx,cp,lai:dt-cp};
   }).filter(x=>x.n>0||x.dt>0||x.fuel>0);
   arr.sort((x,y)=>y.dt-x.dt);
-  const T=arr.reduce((s,x)=>{['n','dt','fuel','ure','vetc','luong','bdsc','khac','bx','cp','lai'].forEach(k=>s[k]=(s[k]||0)+x[k]);return s;},{});
-  const H=['BSX','Số chuyến','Doanh thu','CP Dầu','CP Ure','VETC','Lương TX ★','BD/SC','CP Khác','BX+TB+PS','Tổng CP','Lãi gộp','% Lãi'];
-  const fixc=[6];
+  const T=arr.reduce((s,x)=>{['n','tua','short','dt','fuel','ure','vetc','luong','bdsc','khac','bx','cp','lai'].forEach(k=>s[k]=(s[k]||0)+x[k]);return s;},{});
+  const H=['BSX','Số chuyến','Số tua','C.ngắn','Doanh thu','CP Dầu','CP Ure','VETC','Lương TX ★','BD/SC','CP Khác','BX+TB+PS','Tổng CP','Lãi gộp','% Lãi'];
+  const fixc=[8];
   document.getElementById('t2').innerHTML='<thead><tr>'+H.map((h,i)=>'<th class="'+(i===0?'l ':'')+(fixc.includes(i)?'fix':'')+'">'+h+'</th>').join('')+'</tr></thead><tbody>'+
-    arr.map(x=>'<tr><td class="l"><b>'+x.b+'</b></td><td>'+x.n+'</td><td>'+F(x.dt)+'</td><td>'+F(x.fuel)+'</td>'+
+    arr.map(x=>'<tr><td class="l"><b>'+x.b+'</b></td><td>'+x.n+'</td><td><b>'+F1(x.tua)+'</b></td><td>'+x.short+'</td><td>'+F(x.dt)+'</td><td>'+F(x.fuel)+'</td>'+
       '<td>'+F(x.ure)+'</td><td>'+F(x.vetc)+'</td><td class="fix">'+F(x.luong)+'</td><td>'+F(x.bdsc)+'</td><td>'+F(x.khac)+'</td>'+
       '<td>'+F(x.bx)+'</td><td>'+F(x.cp)+'</td><td>'+F(x.lai)+'</td><td><span class="pill '+(x.lai>=0?'p-good':'p-bad')+'">'+F1(pct(x.lai,x.dt))+'%</span></td></tr>').join('')+
-    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+F(T.dt)+'</td><td>'+F(T.fuel)+'</td><td>'+F(T.ure)+'</td><td>'+F(T.vetc)+'</td><td>'+F(T.luong)+'</td><td>'+F(T.bdsc)+'</td><td>'+F(T.khac)+'</td><td>'+F(T.bx)+'</td><td>'+F(T.cp)+'</td><td>'+F(T.lai)+'</td><td>'+F1(pct(T.lai,T.dt))+'%</td></tr>'+
-    '<tr class="pctrow" style="color:#6b7280;font-size:12px"><td class="l">% / Doanh thu</td><td></td><td>100%</td><td>'+F1(pct(T.fuel,T.dt))+'%</td><td>'+F1(pct(T.ure,T.dt))+'%</td><td>'+F1(pct(T.vetc,T.dt))+'%</td><td>'+F1(pct(T.luong,T.dt))+'%</td><td>'+F1(pct(T.bdsc,T.dt))+'%</td><td>'+F1(pct(T.khac,T.dt))+'%</td><td>'+F1(pct(T.bx,T.dt))+'%</td><td>'+F1(pct(T.cp,T.dt))+'%</td><td>'+F1(pct(T.lai,T.dt))+'%</td><td></td></tr></tfoot>';
+    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+F1(T.tua)+'</td><td>'+T.short+'</td><td>'+F(T.dt)+'</td><td>'+F(T.fuel)+'</td><td>'+F(T.ure)+'</td><td>'+F(T.vetc)+'</td><td>'+F(T.luong)+'</td><td>'+F(T.bdsc)+'</td><td>'+F(T.khac)+'</td><td>'+F(T.bx)+'</td><td>'+F(T.cp)+'</td><td>'+F(T.lai)+'</td><td>'+F1(pct(T.lai,T.dt))+'%</td></tr>'+
+    '<tr class="pctrow" style="color:#6b7280;font-size:12px"><td class="l">% / Doanh thu</td><td></td><td></td><td></td><td>100%</td><td>'+F1(pct(T.fuel,T.dt))+'%</td><td>'+F1(pct(T.ure,T.dt))+'%</td><td>'+F1(pct(T.vetc,T.dt))+'%</td><td>'+F1(pct(T.luong,T.dt))+'%</td><td>'+F1(pct(T.bdsc,T.dt))+'%</td><td>'+F1(pct(T.khac,T.dt))+'%</td><td>'+F1(pct(T.bx,T.dt))+'%</td><td>'+F1(pct(T.cp,T.dt))+'%</td><td>'+F1(pct(T.lai,T.dt))+'%</td><td></td></tr></tfoot>';
   drawVeh(arr);
 }
 function drawVeh(arr){const ctx=document.getElementById('chVeh');if(chV)chV.destroy();
