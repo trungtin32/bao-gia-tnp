@@ -215,7 +215,7 @@ function renderT2(rows,f,t,fx){
   }).filter(x=>x.n>0||x.dt>0||x.fuel>0);
   arr.sort((x,y)=>y.dt-x.dt);
   const T=arr.reduce((s,x)=>{['n','tua','short','dt','fuel','ure','vetc','luong','bdsc','khac','bx','cp','lai'].forEach(k=>s[k]=(s[k]||0)+x[k]);return s;},{});
-  const H=['BSX','Số chuyến','Số tua','C.ngắn','Doanh thu','CP Dầu','CP Ure','VETC','Lương TX ★','BD/SC','CP Khác','BX+TB+PS','Tổng CP','Lãi gộp','% Lãi'];
+  const H=['BSX','Số đơn hàng','Số tua','C.ngắn','Doanh thu','CP Dầu','CP Ure','VETC','Lương TX ★','BD/SC','CP Khác','BX+TB+PS','Tổng CP','Lãi gộp','% Lãi'];
   const fixc=[8];
   document.getElementById('t2').innerHTML='<thead><tr>'+H.map((h,i)=>'<th class="'+(i===0?'l ':'')+(fixc.includes(i)?'fix':'')+'">'+h+'</th>').join('')+'</tr></thead><tbody>'+
     arr.map(x=>'<tr><td class="l"><b>'+x.b+'</b></td><td>'+x.n+'</td><td><b>'+F1(x.tua)+'</b></td><td>'+x.short+'</td><td>'+F(x.dt)+'</td><td>'+F(x.fuel)+'</td>'+
