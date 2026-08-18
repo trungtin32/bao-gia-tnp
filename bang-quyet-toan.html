@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bảng Quyết Toán theo Xe — TNP LOG</title>
+<style>
+:root{color-scheme:light;--bg:#f4f6f9;--card:#fff;--ink:#1f2a37;--muted:#6b7280;--line:#e5e7eb;--brand:#0f6e8c;--brand2:#13a89e;--good:#15803d;--bad:#dc2626;--warn:#b45309;--accent:#eef6f8;--fix:#fff7ed;--fixln:#fed7aa}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:13.5px;line-height:1.45}
+.wrap{max-width:1320px;margin:0 auto;padding:18px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}
+h1{font-size:21px;margin:0}
+.sub{color:var(--muted);font-size:12.5px;margin:2px 0 12px}
+.filterbar{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.fld input,.fld select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff;color:var(--ink)}
+.livestat{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;display:inline-block}
+.livestat.ok{background:#dcfce7;color:#166534}.livestat.err{background:#fee2e2;color:#991b1b}.livestat.load{background:#e0f2fe;color:#075985}
+#reload{margin-left:8px;padding:5px 12px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:12.5px;cursor:pointer;color:var(--brand);font-weight:600}
+#reload:hover{border-color:var(--brand)}
+.veh{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.veh-head{background:var(--brand);color:#fff;padding:9px 14px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.veh-head .sum{font-weight:400;font-size:12px;opacity:.9}
+.scroll{overflow:auto}
+table.t{width:100%;border-collapse:collapse;font-size:12px;min-width:1080px}
+table.t th,table.t td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table.t th.l,table.t td.l{text-align:left}
+table.t thead th{background:#e8eef2;color:#1f2a37;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em;font-weight:700}
+table.t td.fix{background:var(--fix)}
+table.t th.fix{background:#fdeee0}
+table.t tbody tr:hover{background:var(--accent)}
+table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--brand)}
+.sect{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;padding:8px 14px 4px}
+.empty{padding:10px 14px;color:var(--muted);font-size:12.5px;font-style:italic}
+.footnote{font-size:11.5px;color:var(--muted);margin-top:16px;line-height:1.6}
+.pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:10.5px;font-weight:600}
+.p-good{background:#dcfce7;color:#166534}.p-bad{background:#fee2e2;color:#991b1b}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><h1>Bảng Quyết Toán theo Xe — TNP LOG</h1><div><span class="livestat load" id="livestat">●</span><button id="reload">⟳ Tải lại</button></div></div>
+  <div class="sub">Quyết toán từng tua trong tháng · Doanh thu, Dầu/Ure/VETC/Lương/CP khác đọc trực tiếp từ sheet · Trang riêng biệt, không dùng chung dữ liệu hiển thị với Báo cáo Vận hành.</div>
+
+  <div class="filterbar">
+    <div class="fld"><label>Tháng</label><input type="month" id="thang"></div>
+    <div class="fld"><label>Xe</label><select id="xe"><option value="">Tất cả xe</option></select></div>
+  </div>
+
+  <div id="out"></div>
+
+  <div class="footnote">
+    Số tua = nhóm các chuyến có cùng giá trị cột "TUA THỰC HIỆN" trong tháng (giống quy ước Bảng 2 ở báo cáo vận hành) · Dầu/Ure/VETC được gán cho tua theo cửa sổ ngày của tua đó trong tháng (ngày VC tua sau liền kề cắt ngày VC tua trước) để tránh tính trùng · Lương lấy trực tiếp theo từng chuyến từ cột "LƯƠNG TUA LX" · Chuyến ngắn (cột tua ghi chữ, VD: HCM_Cần Thơ) và Chưa ghi tua (cột tua để trống) liệt kê riêng, không gộp vào tua.
+  </div>
+</div>
+
+<script>
+const SHEET_CSV="https://docs.google.com/spreadsheets/d/1c5HtmjEDWYnRvJXQS8OcAJaRUkSWF5ICAmcJjOl80QQ/export?format=csv&gid=872982324";
+const COST_ID="1mRA8DoTp51DfU2kkk2ZnMnejVkM3vweGHHD2sO67gxw";
+const OWN_SET=["50H-756.77","50H-260.74","50H-904.92","50E-658.83","50H-903.08","50H-449.61","50E-673.32","50E-533.54","50E-398.51"];
+const OWN_SORTED=[...OWN_SET].sort();
+
+function cleanS(s){return (s||'').replace(/\s+/g,' ').trim();}
+function vnum(s){s=(s||'').trim().replace(/\./g,'').replace(/ /g,'').replace(/,/g,'.');const v=parseFloat(s);return isNaN(v)?0:v;}
+function vdate(s){const m=/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec((s||'').trim());if(!m)return null;let d=+m[1],mo=+m[2],y=+m[3];if(y<100)y+=2000;const dt=new Date(Date.UTC(y,mo-1,d));if(dt.getUTCMonth()!==mo-1)return null;return dt.toISOString().slice(0,10);}
+function vbsx(s){const m=/5\d[A-Z]-\d{2,3}\.\d{2}/.exec(s||'');if(!m)return'';let b=m[0];if(b==='50H-44.61')b='50H-449.61';return b;}
+function parseCSV(text){const rows=[];let row=[],field='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else q=false;}else field+=c;}else{if(c==='"')q=true;else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}else if(c==='\r'){}else field+=c;}}if(field!==''||row.length){row.push(field);rows.push(row);}return rows;}
+const F=n=>new Intl.NumberFormat('vi-VN').format(Math.round(n||0));
+const F1=n=>new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(n||0);
+
+async function fetchCost(src,dI,bI,aI,div){div=div||1;const u='https://docs.google.com/spreadsheets/d/'+COST_ID+'/export?format=csv&gid='+src;const rows=parseCSV(await (await fetch(u,{cache:'no-store'})).text());const out=[];for(const r of rows){if(r.length<=Math.max(dI,bI,aI))continue;const d=vdate(r[dI]),b=vbsx(r[bI]),a=vnum(r[aI])/div;if(d&&d.slice(0,4)==='2026'&&OWN_SET.includes(b)&&a)out.push({b,d,a:Math.round(a)});}return out;}
+
+function parseOrders(rows){
+  const O=[];
+  for(let i=4;i<rows.length;i++){
+    let r=rows[i];if(!r)continue;while(r.length<32)r=r.concat('');
+    const maDon=cleanS(r[1]),khach=cleanS(r[2]);
+    if(!maDon&&!khach)continue;
+    const ncc=cleanS(r[23]);
+    O.push({
+      maDon,khach,
+      d:vdate(r[4]),
+      ngayVC:vdate(r[6]),ngayGiao:vdate(r[7]),
+      gioDenKho:cleanS(r[5]),gioHoanThanh:cleanS(r[8]),
+      bsx:cleanS(r[9])||'(chưa gán)',
+      taiXe1:cleanS(r[10]),taiXe2:cleanS(r[11]),
+      kmDau:vnum(r[12]),kmCuoi:vnum(r[13]),luongTua:vnum(r[14]),
+      diemNhan:cleanS(r[18]),diemGiao:cleanS(r[19]),
+      tuaRaw:cleanS(r[20]),
+      nghiepVu:cleanS(r[21])||'(khác)',
+      cuoc:vnum(r[22]),
+      boc:vnum(r[26]),trungChuyen:vnum(r[27]),phatSinh:vnum(r[28]),
+      ghiChu:cleanS(r[31]),
+      own:ncc==='TNP LOG'||ncc===''
+    });
+  }
+  return O;
+}
+
+let ORDERS=[],FUEL=[],URE=[],VETC=[];
+
+function costInRange(arr,b,f,t){return arr.filter(x=>x.b===b&&x.d>=f&&x.d<=t).reduce((s,x)=>s+x.a,0);}
+
+function buildGroups(rows){
+  const tuaMap=new Map();
+  const half=new Map();
+  const shortRows=[],unassigned=[];
+  for(const o of rows){
+    const u=o.tuaRaw;
+    if(!u){unassigned.push(o);continue;}
+    if(/^[\d.,]+$/.test(u)){
+      const num=parseFloat(u.replace(',','.'));
+      if(isNaN(num)){unassigned.push(o);continue;}
+      if(num>=1){
+        const key=num;
+        if(!tuaMap.has(key))tuaMap.set(key,[]);
+        tuaMap.get(key).push(o);
+      }else{
+        const key=o.d||'?';
+        if(!half.has(key))half.set(key,[]);
+        half.get(key).push(o);
+      }
+    }else{
+      shortRows.push(o);
+    }
+  }
+  const groups=[...tuaMap.entries()].map(([num,rs])=>({label:F1(num),num,rows:rs}))
+    .concat([...half.entries()].map(([d,rs])=>({label:'0,5',num:0.5,rows:rs,dateKey:d})));
+  groups.sort((a,b)=>{
+    const da=a.rows.reduce((m,o)=>o.d&&(!m||o.d<m)?o.d:m,null)||'9999';
+    const db=b.rows.reduce((m,o)=>o.d&&(!m||o.d<m)?o.d:m,null)||'9999';
+    return da<db?-1:da>db?1:a.num-b.num;
+  });
+  groups.forEach(g=>{
+    g.minVC=g.rows.reduce((m,o)=>o.ngayVC&&(!m||o.ngayVC<m)?o.ngayVC:m,null);
+    g.maxGiao=g.rows.reduce((m,o)=>o.ngayGiao&&(!m||o.ngayGiao>m)?o.ngayGiao:m,null)||g.minVC;
+  });
+  for(let i=0;i<groups.length;i++){
+    groups[i].rangeStart=groups[i].minVC;
+    groups[i].rangeEnd=(i+1<groups.length&&groups[i+1].minVC)?groups[i+1].minVC:'9999-99-99';
+  }
+  return {groups,shortRows,unassigned};
+}
+
+function calcRow(rs,f,t,bsx){
+  const dt=rs.reduce((s,o)=>s+o.cuoc,0);
+  const luong=rs.reduce((s,o)=>s+o.luongTua,0);
+  const cpkhac=rs.reduce((s,o)=>s+o.boc+o.trungChuyen+o.phatSinh,0);
+  const dau=costInRange(FUEL,bsx,f,t), ure=costInRange(URE,bsx,f,t), vetc=costInRange(VETC,bsx,f,t);
+  const tongCP=dau+ure+vetc+luong+cpkhac;
+  return {dt,dau,ure,vetc,luong,cpkhac,tongCP,con:dt-tongCP};
+}
+
+function fmtDate(iso){if(!iso)return'';const[y,m,d]=iso.split('-');return d+'/'+m;}
+
+function renderVehicleTable(bsx,ym,rows){
+  if(!rows.length)return '';
+  const {groups,shortRows,unassigned}=buildGroups(rows);
+  const H=['Tua','Mã đơn','Tài xế','Lộ trình','Ngày VC','Giờ bắt đầu','Ngày HT','Giờ HT','Km chạy','Doanh thu','Dầu','Ure','VETC','Lương','CP khác','Tổng CP','DT còn lại'];
+  let rowsHtml='',T={dt:0,dau:0,ure:0,vetc:0,luong:0,cpkhac:0,tongCP:0,con:0,km:0};
+  const addTot=r=>{for(const k in T)if(k!=='km')T[k]+=r[k]||0;};
+  for(const g of groups){
+    const rs=g.rows;
+    const f=g.rangeStart||'0000-00-00', t=g.rangeEnd||'9999-99-99';
+    const r=calcRow(rs,f,t,bsx);
+    addTot(r);
+    const km=rs.reduce((s,o)=>s+(o.kmCuoi>o.kmDau?o.kmCuoi-o.kmDau:0),0);
+    T.km+=km;
+    const gioBD=rs.map(o=>o.gioDenKho).filter(Boolean).sort()[0]||'';
+    const gioHT=rs.map(o=>o.gioHoanThanh).filter(Boolean).sort().slice(-1)[0]||'';
+    const maDon=[...new Set(rs.map(o=>o.maDon))].join(', ');
+    const taiXe=[...new Set(rs.map(o=>o.taiXe1).filter(Boolean))].join(', ');
+    const dNhan=rs[0].diemNhan, dGiao=rs[rs.length-1].diemGiao;
+    rowsHtml+='<tr><td><b>'+g.label+'</b></td><td class="l">'+maDon+'</td><td class="l">'+taiXe+'</td><td class="l">'+dNhan+' → '+dGiao+'</td>'+
+      '<td>'+fmtDate(g.minVC)+'</td><td>'+gioBD+'</td><td>'+fmtDate(g.maxGiao)+'</td><td>'+gioHT+'</td><td>'+(km?F(km):'')+'</td>'+
+      '<td>'+F(r.dt)+'</td><td>'+F(r.dau)+'</td><td>'+F(r.ure)+'</td><td>'+F(r.vetc)+'</td><td class="fix">'+F(r.luong)+'</td><td>'+F(r.cpkhac)+'</td>'+
+      '<td class="fix">'+F(r.tongCP)+'</td><td class="fix"><b>'+F(r.con)+'</b></td></tr>';
+  }
+  let out='<div class="veh"><div class="veh-head"><span>XE: '+bsx+'</span><span class="sum">'+groups.length+' tua · '+shortRows.length+' chuyến ngắn'+(unassigned.length?' · '+unassigned.length+' chưa ghi tua':'')+'</span></div>';
+  out+='<div class="scroll"><table class="t"><thead><tr>'+H.map((h,i)=>'<th class="'+(i===1||i===2||i===3?'l':'')+(i===13||i===15||i===16?'fix':'')+'">'+h+'</th>').join('')+'</tr></thead><tbody>'+
+    (rowsHtml||'<tr><td colspan="17" style="text-align:center;color:var(--muted);font-style:italic">— chưa có tua nào trong tháng —</td></tr>')+
+    '</tbody></table></div>';
+
+  if(shortRows.length){
+    out+='<div class="sect">Chuyến ngắn (không tính tua)</div><div class="scroll"><table class="t"><thead><tr>'+H.map((h,i)=>'<th class="'+(i===1||i===2||i===3?'l':'')+(i===13||i===15||i===16?'fix':'')+'">'+h+'</th>').join('')+'</tr></thead><tbody>';
+    for(const o of shortRows){
+      const r=calcRow([o],o.d,o.d,bsx);
+      addTot(r);
+      const km=o.kmCuoi>o.kmDau?o.kmCuoi-o.kmDau:0; T.km+=km;
+      out+='<tr><td>—</td><td class="l">'+o.maDon+'</td><td class="l">'+o.taiXe1+'</td><td class="l">'+o.diemNhan+' → '+o.diemGiao+'</td>'+
+        '<td>'+fmtDate(o.ngayVC)+'</td><td>'+o.gioDenKho+'</td><td>'+fmtDate(o.ngayGiao)+'</td><td>'+o.gioHoanThanh+'</td><td>'+(km?F(km):'')+'</td>'+
+        '<td>'+F(r.dt)+'</td><td>'+F(r.dau)+'</td><td>'+F(r.ure)+'</td><td>'+F(r.vetc)+'</td><td class="fix">'+F(r.luong)+'</td><td>'+F(r.cpkhac)+'</td>'+
+        '<td class="fix">'+F(r.tongCP)+'</td><td class="fix"><b>'+F(r.con)+'</b></td></tr>';
+    }
+    out+='</tbody></table></div>';
+  }
+  if(unassigned.length){
+    out+='<div class="sect">Chưa ghi tua (cần bổ sung cột TUA THỰC HIỆN)</div><div class="scroll"><table class="t"><thead><tr>'+H.map((h,i)=>'<th class="'+(i===1||i===2||i===3?'l':'')+(i===13||i===15||i===16?'fix':'')+'">'+h+'</th>').join('')+'</tr></thead><tbody>';
+    for(const o of unassigned){
+      const r=calcRow([o],o.d,o.d,bsx);
+      addTot(r);
+      const km=o.kmCuoi>o.kmDau?o.kmCuoi-o.kmDau:0; T.km+=km;
+      out+='<tr><td>—</td><td class="l">'+o.maDon+'</td><td class="l">'+o.taiXe1+'</td><td class="l">'+o.diemNhan+' → '+o.diemGiao+'</td>'+
+        '<td>'+fmtDate(o.ngayVC)+'</td><td>'+o.gioDenKho+'</td><td>'+fmtDate(o.ngayGiao)+'</td><td>'+o.gioHoanThanh+'</td><td>'+(km?F(km):'')+'</td>'+
+        '<td>'+F(r.dt)+'</td><td>'+F(r.dau)+'</td><td>'+F(r.ure)+'</td><td>'+F(r.vetc)+'</td><td class="fix">'+F(r.luong)+'</td><td>'+F(r.cpkhac)+'</td>'+
+        '<td class="fix">'+F(r.tongCP)+'</td><td class="fix"><b>'+F(r.con)+'</b></td></tr>';
+    }
+    out+='</tbody></table></div>';
+  }
+  out+='<div class="scroll"><table class="t"><tfoot><tr><td class="l" style="width:1%">TỔNG THÁNG</td><td class="l" colspan="7"></td><td>'+(T.km?F(T.km):'')+'</td>'+
+    '<td>'+F(T.dt)+'</td><td>'+F(T.dau)+'</td><td>'+F(T.ure)+'</td><td>'+F(T.vetc)+'</td><td>'+F(T.luong)+'</td><td>'+F(T.cpkhac)+'</td><td>'+F(T.tongCP)+'</td><td>'+F(T.con)+'</td></tr></tfoot></table></div>';
+  out+='</div>';
+  return out;
+}
+
+function render(){
+  const ym=document.getElementById('thang').value;
+  const xeSel=document.getElementById('xe').value;
+  if(!ym){document.getElementById('out').innerHTML='';return;}
+  const vehs=xeSel?[xeSel]:OWN_SORTED;
+  let html='';
+  for(const bsx of vehs){
+    const rows=ORDERS.filter(o=>o.own&&o.bsx===bsx&&o.d&&o.d.slice(0,7)===ym);
+    if(!rows.length && xeSel)html+='<div class="empty">Không có dữ liệu cho xe '+bsx+' trong tháng '+ym+'.</div>';
+    else if(rows.length)html+=renderVehicleTable(bsx,ym,rows);
+  }
+  document.getElementById('out').innerHTML=html||'<div class="empty">Không có dữ liệu trong tháng đã chọn.</div>';
+}
+
+function setStat(t,cls){const e=document.getElementById('livestat');if(e){e.textContent=t;e.className='livestat '+(cls||'');}}
+
+async function loadLive(){
+  setStat('⟳ Đang tải dữ liệu mới…','load');
+  try{
+    const res=await fetch(SHEET_CSV,{cache:'no-store'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const txt=await res.text();
+    ORDERS=parseOrders(parseCSV(txt));
+    if(!ORDERS.length)throw new Error('empty');
+    setStat('● Trực tiếp · cập nhật '+new Date().toLocaleTimeString('vi-VN'),'ok');
+    render();
+  }catch(e){setStat('⚠ Không tải được dữ liệu — thử tải lại','err');}
+  try{FUEL=await fetchCost('0',1,2,9);FUEL=FUEL.map(x=>x.d<'2026-03-26'?{...x,a:Math.round(x.a/1.08)}:x);render();}catch(e){}
+  try{URE=await fetchCost('695565677',1,2,9);render();}catch(e){}
+  try{VETC=await fetchCost('736934312',23,21,24,1.08);render();}catch(e){}
+}
+
+(function(){
+  const sel=document.getElementById('xe');
+  OWN_SORTED.forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;sel.appendChild(o);});
+  const now=new Date();
+  document.getElementById('thang').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('thang').addEventListener('change',render);
+  document.getElementById('xe').addEventListener('change',render);
+  document.getElementById('reload').addEventListener('click',loadLive);
+  loadLive();
+})();
+</script>
+</body>
+</html>
