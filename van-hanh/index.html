@@ -33,8 +33,7 @@ tr:hover td{background:#f6faff}
 .st{padding:24px;text-align:center;color:#667}
 a.home{display:inline-block;margin-bottom:8px;color:var(--ac);text-decoration:none;font-weight:700;font-size:13px}
 th.gp{position:static;text-align:center;font-size:11px}td.cDT,th.cDT{background:#eaf3de}td.cHQ,th.cHQ{background:#e6f1fb}td.cDM,th.cDM{background:#faeeda}td.cRO,th.cRO{background:#fcebeb}
-</style></head><body>
-<a href="../dashboard-dau/" style="position:fixed;top:10px;right:12px;z-index:99999;padding:8px 14px;background:#d97706;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;font-family:system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.25)">🛢️ Dashboard Dầu</a>
+</style></head><body><div class="wrap">
 <a class="home" href="../index.html">← Về trang chính</a>
 <h1>Vận Hành</h1>
 <p class="sub">Đọc trực tiếp từ Google Sheet · gộp đơn ghép thành chuyến · khớp dầu theo Odo, ure/VETC/CP khác theo ngày · chỉ xe nhà TNP.</p>
@@ -42,6 +41,7 @@ th.gp{position:static;text-align:center;font-size:11px}td.cDT,th.cDT{background:
  <div><label>Từ ngày</label><input type="date" id="f1"></div>
  <div><label>Đến ngày</label><input type="date" id="f2"></div>
  <div><label>Xe (BSX)</label><select id="f3"><option>TẤT CẢ</option></select></div>
+ <div><label>Khách hàng</label><input type="text" id="fk" placeholder="Tìm tên khách..." style="min-width:150px"></div>
  <div><label>Định mức (L/100km)</label><input type="number" id="dm" value="20" step="1" min="0" style="min-width:90px;width:100px"></div>
  <div><label>Chọn nhanh</label><div class="presets">
    <button data-p="m5">Tháng 5</button><button data-p="m6">Tháng 6</button><button data-p="m7">Tháng 7</button><button data-p="all">Toàn bộ</button>
@@ -158,7 +158,7 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
   const tongcp=luong+phuphi+dau+ure+vetc+cpk;
   const conlai=dthu-tongcp;const pct=dthu?conlai/dthu:0;
   const xl=pct>=0.4?'Tốt':pct>=0.2?'Đạt':'Kém';
-  rows.push({ma,route,bsx:t.bsx,ngayvc:t.ngayvc,ngaynhan:t.ngaynhan,ngaygiao:t.ngaygiao,tx:t.orders[0].tx1,sodon,dthu,dau,ure,vetc,luong,phuphi,tongcp,conlai,pct,km,dauDo,lit,kmRong,dauRong,vetcRong,xl,dk:dnhan});}
+  rows.push({kh:[...new Set(t.orders.map(o=>(o.kh||'').trim()).filter(Boolean))].join(', '),ma,route,bsx:t.bsx,ngayvc:t.ngayvc,ngaynhan:t.ngaynhan,ngaygiao:t.ngaygiao,tx:t.orders[0].tx1,sodon,dthu,dau,ure,vetc,luong,phuphi,tongcp,conlai,pct,km,dauDo,lit,kmRong,dauRong,vetcRong,xl,dk:dnhan});}
  return rows;
 }
 
@@ -180,10 +180,11 @@ function render(){
  if(!RAW)return;
  const DM=+document.getElementById('dm').value||0;
  const a=keyStr(document.getElementById('f1').value),b=keyStr(document.getElementById('f2').value),x=document.getElementById('f3').value;
- const rows=RAW.filter(r=>r.dk>=a&&r.dk<=b&&(x==='TẤT CẢ'||r.bsx===x));
+ const kh=(document.getElementById('fk').value||'').trim().toLowerCase();
+ const rows=RAW.filter(r=>r.dk>=a&&r.dk<=b&&(x==='TẤT CẢ'||r.bsx===x)&&(!kh||(r.kh||'').toLowerCase().includes(kh)));
  const S=k=>rows.reduce((s,r)=>s+(r[k]||0),0);
  const dthu=S('dthu'),cp=S('tongcp'),conlai=S('conlai'),km=S('km'),lit=S('lit'),sodon=S('sodon'),kmRong=S('kmRong'),dauRong=S('dauRong');
- const tot=[['SỐ CHUYẾN',rows.length],['SỐ ĐƠN',sodon],['DOANH THU',fmt(dthu)],['TỔNG CP',fmt(cp)],['DT CÒN LẠI',fmt(conlai)],['% CÒN LẠI',dthu?pf(conlai/dthu):'—'],['KM',fmt(km)],['LÍT ĐỔ',fmt(lit)],['KM RỖNG',fmt(kmRong)],['DẦU RỖNG',fmt(dauRong)]];
+ const tot=[['Ố CHUYẾN',rows.length],['SỐ ĐƠN',sodon],['DOANH THU',fmt(dthu)],['TỔNG CP',fmt(cp)],['DT CÒN LẠI',fmt(conlai)],['% CÒN LẠI',dthu?pf(conlai/dthu):'—'],['KM',fmt(km)],['LÍT ĐỔ',fmt(lit)],['KM RỖNG',fmt(kmRong)],['DẦU RỖNG',fmt(dauRong)]];
  document.getElementById('tot').innerHTML=tot.map(t=>`<div class="card"><div class="l">${t[0]}</div><div class="v">${t[1]}</div></div>`).join('');
  document.getElementById('tb').innerHTML=rows.map(r=>{const neg=r.conlai<0?' neg':'';
   return `<tr><td class="ma mono">${esc(r.ma)}</td><td class="route" title="${esc(r.route)}">${esc(r.route)}</td><td>${r.bsx}</td><td>${fmtd(r.ngaynhan)}</td><td>${fmtd(r.ngayvc)}</td><td>${fmtd(r.ngaygiao)}</td><td>${esc(r.tx)}</td><td class="n">${r.sodon}</td>
@@ -198,6 +199,7 @@ function initFiltersAll(){const ks=RAW.map(r=>r.dk).filter(Boolean);const mn=Mat
 document.getElementById('f1').addEventListener('input',render);
 document.getElementById('f2').addEventListener('input',render);
 document.getElementById('f3').addEventListener('change',render);
+document.getElementById('fk').addEventListener('input',render);
 document.getElementById('dm').addEventListener('input',render);
 document.getElementById('reload').addEventListener('click',load);
 document.querySelectorAll('.presets button').forEach(b=>b.addEventListener('click',()=>setRange(b.dataset.p)));
