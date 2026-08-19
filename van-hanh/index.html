@@ -41,7 +41,7 @@ th.gp{position:static;text-align:center;font-size:11px}td.cDT,th.cDT{background:
  <div><label>Từ ngày</label><input type="date" id="f1"></div>
  <div><label>Đến ngày</label><input type="date" id="f2"></div>
  <div><label>Xe (BSX)</label><select id="f3"><option>TẤT CẢ</option></select></div>
- <div><label>Khách hàng</label><input type="text" id="fk" placeholder="Tìm tên khách..." style="min-width:150px"></div>
+ <div><label>Khách hàng</label><select id="fk" style="min-width:170px"><option>TẤT CẢ</option></select></div>
  <div><label>Định mức (L/100km)</label><input type="number" id="dm" value="20" step="1" min="0" style="min-width:90px;width:100px"></div>
  <div><label>Chọn nhanh</label><div class="presets">
    <button data-p="m5">Tháng 5</button><button data-p="m6">Tháng 6</button><button data-p="m7">Tháng 7</button><button data-p="all">Toàn bộ</button>
@@ -165,6 +165,8 @@ function compute(ord,dauR,ureR,vetcR,cpkR){
 function initFilters(){
  const f3=document.getElementById('f3');const bsx=[...new Set(RAW.map(r=>r.bsx))].sort();
  f3.innerHTML='<option>TẤT CẢ</option>'+bsx.map(b=>`<option>${b}</option>`).join('');
+ const fk=document.getElementById('fk');const khs=[...new Set(RAW.flatMap(r=>(r.kh||'').split(', ')).map(x=>x.trim()).filter(Boolean))].sort((a,z)=>a.localeCompare(z,'vi'));
+ fk.innerHTML='<option>TẤT CẢ</option>'+khs.map(k=>`<option>${k}</option>`).join('');
  const ks=RAW.map(r=>r.dk).filter(Boolean);const mn=Math.min(...ks),mx=Math.max(...ks);
  const iso=k=>`${Math.floor(k/10000)}-${String(Math.floor(k/100)%100).padStart(2,'0')}-${String(k%100).padStart(2,'0')}`;
  if(!document.getElementById('f1').value){const _n=new Date();const _fm=`${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,'0')}-01`;document.getElementById('f1').value=_fm;document.getElementById('f2').value=iso(mx);}
@@ -180,8 +182,8 @@ function render(){
  if(!RAW)return;
  const DM=+document.getElementById('dm').value||0;
  const a=keyStr(document.getElementById('f1').value),b=keyStr(document.getElementById('f2').value),x=document.getElementById('f3').value;
- const kh=(document.getElementById('fk').value||'').trim().toLowerCase();
- const rows=RAW.filter(r=>r.dk>=a&&r.dk<=b&&(x==='TẤT CẢ'||r.bsx===x)&&(!kh||(r.kh||'').toLowerCase().includes(kh)));
+ const kh=document.getElementById('fk').value;
+ const rows=RAW.filter(r=>r.dk>=a&&r.dk<=b&&(x==='TẤT CẢ'||r.bsx===x)&&(kh==='TẤT CẢ'||(r.kh||'').split(', ').includes(kh)));
  const S=k=>rows.reduce((s,r)=>s+(r[k]||0),0);
  const dthu=S('dthu'),cp=S('tongcp'),conlai=S('conlai'),km=S('km'),lit=S('lit'),sodon=S('sodon'),kmRong=S('kmRong'),dauRong=S('dauRong');
  const tot=[['Ố CHUYẾN',rows.length],['SỐ ĐƠN',sodon],['DOANH THU',fmt(dthu)],['TỔNG CP',fmt(cp)],['DT CÒN LẠI',fmt(conlai)],['% CÒN LẠI',dthu?pf(conlai/dthu):'—'],['KM',fmt(km)],['LÍT ĐỔ',fmt(lit)],['KM RỖNG',fmt(kmRong)],['DẦU RỖNG',fmt(dauRong)]];
@@ -199,7 +201,7 @@ function initFiltersAll(){const ks=RAW.map(r=>r.dk).filter(Boolean);const mn=Mat
 document.getElementById('f1').addEventListener('input',render);
 document.getElementById('f2').addEventListener('input',render);
 document.getElementById('f3').addEventListener('change',render);
-document.getElementById('fk').addEventListener('input',render);
+document.getElementById('fk').addEventListener('change',render);
 document.getElementById('dm').addEventListener('input',render);
 document.getElementById('reload').addEventListener('click',load);
 document.querySelectorAll('.presets button').forEach(b=>b.addEventListener('click',()=>setRange(b.dataset.p)));
