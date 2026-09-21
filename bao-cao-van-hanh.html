@@ -46,10 +46,21 @@ table.t thead th.st{background:#13a89e}
 table.t td.st{background:#eefaf8}
 table.t td.warn{color:#b45309;font-weight:700}
 #t2b{min-width:0;font-size:12px}
-#t2b th,#t2b td{padding:5px 6px}
-#t2b thead th{position:static;white-space:normal;line-height:1.25;font-size:10.5px;letter-spacing:0}
-#t2b thead th.grp{background:#0b5a73;font-size:11px;letter-spacing:.04em}
-#t2b thead th.st.grp{background:#0f8f87}
+#t2b th,#t2b td{padding:5px 7px;text-align:center}
+#t2b td.l{text-align:left}
+#t2b thead th{position:static;white-space:normal;line-height:1.25;font-size:10.5px;letter-spacing:0;text-align:center}
+#t2b thead tr:first-child th{background:#0b5a73;font-size:11px;letter-spacing:.04em}
+#t2b thead tr:first-child th.gTua{background:#0e6b6b}
+#t2b thead tr:first-child th.gCn{background:#7a5a2e}
+#t2b thead tr:last-child th.cTua{background:#12807e}
+#t2b td.cDon{background:#eaf3f8}
+#t2b td.cTua{background:#e8f4f1}
+#t2b td.cCn{background:#faf2e6}
+#t2b tfoot td.cDon{background:#dce9f0}
+#t2b tfoot td.cTua{background:#daece7}
+#t2b tfoot td.cCn{background:#f2e6d3}
+#t2b td.zero{color:#c7cdd4}
+#t2b td.warn{color:#b45309;font-weight:700}
 table.t td.fix{background:var(--fix)}
 table.t tbody tr:hover{background:var(--accent)}
 table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--brand)}
@@ -274,16 +285,16 @@ function renderT2B(rows,f,t){
   }).filter(x=>x.n>0);
   arr.sort((x,y)=>y.n-x.n||y.tua-x.tua);
   const T=arr.reduce((s,x)=>{['n','dHT','dDang','dCht','dHuy','tua','tHT','tDang','short'].forEach(k=>s[k]=(s[k]||0)+x[k]);return s;},{n:0,dHT:0,dDang:0,dCht:0,dHuy:0,tua:0,tHT:0,tDang:0,short:0});
-  const THEAD='<thead><tr><th class="l" rowspan="2">BSX</th><th class="grp" colspan="5">ĐƠN HÀNG</th><th class="grp st" colspan="3">TUA</th><th rowspan="2">C.ngắn</th><th rowspan="2">% ĐHT</th></tr>'+
-    '<tr><th>Tổng</th><th class="st">Đã HT</th><th class="st">Đang TH</th><th class="st">Chưa TH</th><th>Hủy</th><th>Tổng</th><th class="st">Đã HT</th><th class="st">Đang TH</th></tr></thead>';
-  const stc=[2,3,4,7,8,9];
-  const cell=(v,i,w)=>'<td class="'+(stc.includes(i)?'st':'')+(w&&v?' warn':'')+'">'+v+'</td>';
+  const THEAD='<thead><tr><th rowspan="2">BSX</th><th colspan="5">ĐƠN HÀNG</th><th class="gTua" colspan="3">TUA</th><th class="gCn" rowspan="2">C.ngắn</th><th rowspan="2">% ĐHT</th></tr>'+
+    '<tr><th>Tổng</th><th>Đã HT</th><th>Đang TH</th><th>Chưa TH</th><th>Hủy</th><th class="cTua">Tổng</th><th class="cTua">Đã HT</th><th class="cTua">Đang TH</th></tr></thead>';
+  const Z=v=>parseFloat(String(v).replace(',','.'))||0;
+  const cell=(v,c,w)=>'<td class="'+c+(Z(v)?(w?' warn':''):' zero')+'">'+v+'</td>';
   document.getElementById('t2b').innerHTML=THEAD+'<tbody>'+
-    arr.map(x=>{const p=x.n?x.dHT/x.n*100:0;return '<tr><td class="l"><b>'+x.b+'</b></td><td><b>'+x.n+'</b></td>'+
-      cell(x.dHT,2)+cell(x.dDang,3,1)+cell(x.dCht,4,1)+cell(x.dHuy,5,1)+
-      '<td><b>'+F1(x.tua)+'</b></td>'+cell(F1(x.tHT),7)+cell(F1(x.tDang),8,x.tDang)+
-      '<td>'+x.short+'</td><td><span class="pill '+(p>=90?'p-good':(p>=70?'p-warn':'p-bad'))+'">'+F1(p)+'%</span></td></tr>';}).join('')+
-    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+T.dHT+'</td><td>'+T.dDang+'</td><td>'+T.dCht+'</td><td>'+T.dHuy+'</td><td>'+F1(T.tua)+'</td><td>'+F1(T.tHT)+'</td><td>'+F1(T.tDang)+'</td><td>'+T.short+'</td><td>'+F1(T.n?T.dHT/T.n*100:0)+'%</td></tr></tfoot>';
+    arr.map(x=>{const p=x.n?x.dHT/x.n*100:0;return '<tr><td class="l"><b>'+x.b+'</b></td><td class="cDon"><b>'+x.n+'</b></td>'+
+      cell(x.dHT,'cDon')+cell(x.dDang,'cDon',1)+cell(x.dCht,'cDon',1)+cell(x.dHuy,'cDon',1)+
+      '<td class="cTua'+(x.tua?'':' zero')+'"><b>'+F1(x.tua)+'</b></td>'+cell(F1(x.tHT),'cTua')+cell(F1(x.tDang),'cTua',1)+
+      cell(x.short,'cCn')+'<td><b>'+F1(p)+'%</b></td></tr>';}).join('')+
+    '</tbody><tfoot><tr><td class="l">TỔNG</td><td class="cDon">'+T.n+'</td><td class="cDon">'+T.dHT+'</td><td class="cDon">'+T.dDang+'</td><td class="cDon">'+T.dCht+'</td><td class="cDon">'+T.dHuy+'</td><td class="cTua">'+F1(T.tua)+'</td><td class="cTua">'+F1(T.tHT)+'</td><td class="cTua">'+F1(T.tDang)+'</td><td class="cCn">'+T.short+'</td><td>'+F1(T.n?T.dHT/T.n*100:0)+'%</td></tr></tfoot>';
 }
 function renderT3(rows){
   const comm=rows.filter(o=>!o.own);const g=groupBy(comm,o=>o.ncc);
