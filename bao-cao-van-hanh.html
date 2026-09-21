@@ -110,7 +110,7 @@ table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--b
 
   <div class="card">
     <h2><span class="tag">BẢNG 2B</span> Tiến độ đơn hàng &amp; tua theo xe</h2>
-    <p class="cap">Bảng thống kê riêng, không đụng đến số liệu tài chính ở BẢNG 2. Lấy từ cột <b>Trạng thái đơn hàng</b> của sheet NHẬP ĐƠN HÀNG: <b>Đã hoàn thành</b> = "Đã giao hàng" · <b>Đang thực hiện</b> = "Đang trung chuyển" / "Đã lấy hàng" · <b>Chưa thực hiện</b> = "Chờ lấy hàng" hoặc để trống. Một tua tính hoàn thành khi mọi đơn trong tua đã giao; còn đơn đang chạy hoặc mới giao một phần thì tính đang thực hiện. Ba cột tua luôn cộng đúng bằng Tổng tua. <i>Đã HT = đã hoàn thành · Đang TH = đang thực hiện · Chưa TH = chưa thực hiện · % ĐHT = tỷ lệ đơn đã hoàn thành.</i></p>
+    <p class="cap">Bảng thống kê riêng, không đụng đến số liệu tài chính ở BẢNG 2. Lấy từ cột <b>Trạng thái đơn hàng</b> của sheet NHẬP ĐƠN HÀNG: <b>Đã hoàn thành</b> = "Đã giao hàng" · <b>Đang thực hiện</b> = "Đang trung chuyển" / "Đã lấy hàng" · <b>Chưa thực hiện</b> = "Chờ lấy hàng" hoặc để trống. Một tua tính hoàn thành khi mọi đơn trong tua đã giao; còn đơn đang chạy, mới giao một phần hoặc chưa khởi hành thì tính đang thực hiện. Tổng tua = tua Đã HT + tua Đang TH. <i>Đã HT = đã hoàn thành · Đang TH = đang thực hiện · Chưa TH = chưa thực hiện · % ĐHT = tỷ lệ đơn đã hoàn thành.</i></p>
     <div class="scroll"><table class="t" id="t2b"></table></div>
   </div>
 
@@ -269,21 +269,21 @@ function renderT2B(rows,f,t){
     let tua=0;for(const ym of new Set([...Object.keys(mm),...Object.keys(mh)]))tua+=(mm[ym]||0)+0.5*((mh[ym]&&mh[ym].size)||0);
     let tHT=0,tDang=0,tCht=0;
     for(const k in tuaSt){const e=tuaSt[k];if(e.dang>0||(e.ht>0&&e.cht>0))tDang+=e.w;else if(e.ht>0)tHT+=e.w;else tCht+=e.w;}
-    const rd=Math.round((tua-(tHT+tDang+tCht))*10)/10;if(rd>0)tCht+=rd;
-    return {b,n:a.length,dHT,dDang,dCht,dHuy,tua,tHT,tDang,tCht,short};
+    const rd=Math.round((tua-(tHT+tDang+tCht))*10)/10;if(rd>0)tCht+=rd;tDang+=tCht;
+    return {b,n:a.length,dHT,dDang,dCht,dHuy,tua,tHT,tDang,short};
   }).filter(x=>x.n>0);
   arr.sort((x,y)=>y.n-x.n||y.tua-x.tua);
-  const T=arr.reduce((s,x)=>{['n','dHT','dDang','dCht','dHuy','tua','tHT','tDang','tCht','short'].forEach(k=>s[k]=(s[k]||0)+x[k]);return s;},{n:0,dHT:0,dDang:0,dCht:0,dHuy:0,tua:0,tHT:0,tDang:0,tCht:0,short:0});
-  const THEAD='<thead><tr><th class="l" rowspan="2">BSX</th><th class="grp" colspan="5">ĐƠN HÀNG</th><th class="grp st" colspan="4">TUA</th><th rowspan="2">C.ngắn</th><th rowspan="2">% ĐHT</th></tr>'+
-    '<tr><th>Tổng</th><th class="st">Đã HT</th><th class="st">Đang TH</th><th class="st">Chưa TH</th><th>Hủy</th><th>Tổng</th><th class="st">Đã HT</th><th class="st">Đang TH</th><th class="st">Chưa TH</th></tr></thead>';
+  const T=arr.reduce((s,x)=>{['n','dHT','dDang','dCht','dHuy','tua','tHT','tDang','short'].forEach(k=>s[k]=(s[k]||0)+x[k]);return s;},{n:0,dHT:0,dDang:0,dCht:0,dHuy:0,tua:0,tHT:0,tDang:0,short:0});
+  const THEAD='<thead><tr><th class="l" rowspan="2">BSX</th><th class="grp" colspan="5">ĐƠN HÀNG</th><th class="grp st" colspan="3">TUA</th><th rowspan="2">C.ngắn</th><th rowspan="2">% ĐHT</th></tr>'+
+    '<tr><th>Tổng</th><th class="st">Đã HT</th><th class="st">Đang TH</th><th class="st">Chưa TH</th><th>Hủy</th><th>Tổng</th><th class="st">Đã HT</th><th class="st">Đang TH</th></tr></thead>';
   const stc=[2,3,4,7,8,9];
   const cell=(v,i,w)=>'<td class="'+(stc.includes(i)?'st':'')+(w&&v?' warn':'')+'">'+v+'</td>';
   document.getElementById('t2b').innerHTML=THEAD+'<tbody>'+
     arr.map(x=>{const p=x.n?x.dHT/x.n*100:0;return '<tr><td class="l"><b>'+x.b+'</b></td><td><b>'+x.n+'</b></td>'+
       cell(x.dHT,2)+cell(x.dDang,3,1)+cell(x.dCht,4,1)+cell(x.dHuy,5,1)+
-      '<td><b>'+F1(x.tua)+'</b></td>'+cell(F1(x.tHT),7)+cell(F1(x.tDang),8,x.tDang)+cell(F1(x.tCht),9,x.tCht)+
+      '<td><b>'+F1(x.tua)+'</b></td>'+cell(F1(x.tHT),7)+cell(F1(x.tDang),8,x.tDang)+
       '<td>'+x.short+'</td><td><span class="pill '+(p>=90?'p-good':(p>=70?'p-warn':'p-bad'))+'">'+F1(p)+'%</span></td></tr>';}).join('')+
-    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+T.dHT+'</td><td>'+T.dDang+'</td><td>'+T.dCht+'</td><td>'+T.dHuy+'</td><td>'+F1(T.tua)+'</td><td>'+F1(T.tHT)+'</td><td>'+F1(T.tDang)+'</td><td>'+F1(T.tCht)+'</td><td>'+T.short+'</td><td>'+F1(T.n?T.dHT/T.n*100:0)+'%</td></tr></tfoot>';
+    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+T.dHT+'</td><td>'+T.dDang+'</td><td>'+T.dCht+'</td><td>'+T.dHuy+'</td><td>'+F1(T.tua)+'</td><td>'+F1(T.tHT)+'</td><td>'+F1(T.tDang)+'</td><td>'+T.short+'</td><td>'+F1(T.n?T.dHT/T.n*100:0)+'%</td></tr></tfoot>';
 }
 function renderT3(rows){
   const comm=rows.filter(o=>!o.own);const g=groupBy(comm,o=>o.ncc);
