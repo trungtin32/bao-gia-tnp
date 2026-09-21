@@ -44,7 +44,7 @@ table.t thead th{background:#0f6e8c;color:#fff;font-size:11px;text-transform:upp
 table.t thead th.fix{background:#b45309}
 table.t thead th.st{background:#13a89e}
 table.t td.st{background:#eefaf8}
-table.t td.st.warn{color:#92400e;font-weight:600}
+table.t td.warn{color:#b45309;font-weight:700}
 table.t td.fix{background:var(--fix)}
 table.t tbody tr:hover{background:var(--accent)}
 table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--brand)}
@@ -100,8 +100,13 @@ table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--b
   <div class="card">
     <h2><span class="tag">BẢNG 2</span> Chi tiết theo xe TNP LOG</h2>
     <p class="cap">Doanh thu · Dầu · Ure · VETC · BD/SC · CP khác · BX+TB+PS theo ngày. Lương (★) cộng theo tháng. Tất cả đọc trực tiếp từ sheet, chỉ xe nhà TNP.</p>
-    <p class="cap">Nhóm cột nền xanh lấy từ cột <b>Trạng thái đơn hàng</b> của sheet NHẬP ĐƠN HÀNG: <b>hoàn thành</b> = "Đã giao hàng"; <b>đang thực hiện</b> = "Đang trung chuyển" / đã lấy hàng; <b>chưa thực hiện</b> = "Chờ lấy hàng" hoặc để trống. Một tua tính hoàn thành khi mọi đơn trong tua đã giao; còn đơn đang chạy hoặc mới giao một phần thì tính đang thực hiện. Đơn "Hủy" không tính vào 2 cột đơn. Tua ĐHT + tua đang TH + tua chưa TH = Số tua.</p>
     <div class="scroll"><table class="t" id="t2"></table></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">BẢNG 2B</span> Tiến độ đơn hàng &amp; tua theo xe</h2>
+    <p class="cap">Bảng thống kê riêng, không đụng đến số liệu tài chính ở BẢNG 2. Lấy từ cột <b>Trạng thái đơn hàng</b> của sheet NHẬP ĐƠN HÀNG: <b>Đã hoàn thành</b> = "Đã giao hàng" · <b>Đang thực hiện</b> = "Đang trung chuyển" / "Đã lấy hàng" · <b>Chưa thực hiện</b> = "Chờ lấy hàng" hoặc để trống. Một tua tính hoàn thành khi mọi đơn trong tua đã giao; còn đơn đang chạy hoặc mới giao một phần thì tính đang thực hiện. Ba cột tua luôn cộng đúng bằng Tổng tua.</p>
+    <div class="scroll"><table class="t" id="t2b"></table></div>
   </div>
 
   <div class="grid2">
@@ -186,7 +191,7 @@ function render(){
   document.getElementById('rangeline').innerHTML='Kỳ: '+f.split('-').reverse().join('/')+' → '+t.split('-').reverse().join('/')+' · '+cur.n+' đơn'+
     ' <span style="color:#9ca3af;font-weight:400">· So cùng kỳ tháng trước ('+pf.split('-').reverse().join('/')+' → '+pt.split('-').reverse().join('/')+', '+prev.n+' đơn)</span>';
   const fx=fixActive();
-  renderKPI(cur,prev,fx); renderT1(cur,prev,fx); renderT2(cur.rows,f,t,fx); renderT3(cur.rows); renderT5(cur.rows); renderT4(cur.rows,prev.rows);
+  renderKPI(cur,prev,fx); renderT1(cur,prev,fx); renderT2(cur.rows,f,t,fx); renderT2B(cur.rows,f,t); renderT3(cur.rows); renderT5(cur.rows); renderT4(cur.rows,prev.rows);
 }
 function groupBy(a,k){const m={};a.forEach(o=>{const x=k(o);(m[x]=m[x]||[]).push(o);});return m;}
 function fixSum(key,active){if(!active)return 0;let s=0;for(const b in MFIX)s+=MFIX[b][key]||0;return s;}
@@ -220,27 +225,20 @@ function renderT2(rows,f,t,fx){
     const a=g[b]||[];const dt=a.reduce((s,o)=>s+o.cuoc,0);const bx=a.reduce((s,o)=>s+o.surcharge,0);
     const fuel=fuelM[b]||0;const ure=ureM[b]||0;const bdsc=bdM[b]||0;const khac=ckM[b]||0;const vetc=vetcM[b]||0;const luong=luongM[b]||0;
     const cp=fuel+ure+vetc+luong+bdsc+khac+bx;
-    let dHT=0,dDang=0;for(const o of a){const gS=stGroup(o.trangThai);if(gS==='ht')dHT++;else if(gS==='dang')dDang++;}
-    const mm={},mh={},tuaSt={};let short=0;for(const o of a){const u=(o.tua||'').trim();if(!u)continue;if(/^[\d.,]+$/.test(u)){const num=parseFloat(u.replace(',','.'));if(!isNaN(num)){const dN=o.ngayNhan||'';if(!dN||dN<f||dN>t)continue;const ym=dN.slice(0,7);let k,w;if(num>=1){mm[ym]=Math.max(mm[ym]||0,num);k=ym+'#'+num;w=1;}else{(mh[ym]=mh[ym]||new Set()).add(dN);k='H'+dN;w=0.5;}
-      const e=tuaSt[k]||(tuaSt[k]={w,ht:0,dang:0,cht:0});const gS=stGroup(o.trangThai);if(gS==='ht')e.ht++;else if(gS==='dang')e.dang++;else if(gS==='cht')e.cht++;}}else short++;}
+    const mm={},mh={};let short=0;for(const o of a){const u=(o.tua||'').trim();if(!u)continue;if(/^[\d.,]+$/.test(u)){const num=parseFloat(u.replace(',','.'));if(!isNaN(num)){const dN=o.ngayNhan||'';if(!dN||dN<f||dN>t)continue;const ym=dN.slice(0,7);if(num>=1)mm[ym]=Math.max(mm[ym]||0,num);else (mh[ym]=mh[ym]||new Set()).add(dN);}}else short++;}
     let tua=0;for(const ym of new Set([...Object.keys(mm),...Object.keys(mh)]))tua+=(mm[ym]||0)+0.5*((mh[ym]&&mh[ym].size)||0);
-    let tHT=0,tDang=0,tCht=0;for(const k in tuaSt){const e=tuaSt[k];if(e.dang>0||(e.ht>0&&e.cht>0))tDang+=e.w;else if(e.ht>0)tHT+=e.w;else tCht+=e.w;}
-    const _rd=Math.round((tua-(tHT+tDang+tCht))*10)/10;if(_rd>0)tCht+=_rd;
-    return {b,n:a.length,tua,short,dHT,dDang,tHT,tDang,tCht,dt,fuel,ure,vetc,luong,bdsc,khac,bx,cp,lai:dt-cp};
+    return {b,n:a.length,tua,short,dt,fuel,ure,vetc,luong,bdsc,khac,bx,cp,lai:dt-cp};
   }).filter(x=>x.n>0||x.dt>0||x.fuel>0);
   arr.sort((x,y)=>y.dt-x.dt);
-  const T=arr.reduce((s,x)=>{['n','tua','short','dHT','dDang','tHT','tDang','tCht','dt','fuel','ure','vetc','luong','bdsc','khac','bx','cp','lai'].forEach(k=>s[k]=(s[k]||0)+x[k]);return s;},{});
-  const H=['BSX','Số đơn hàng','Số tua','Đơn đã hoàn thành','Đơn đang thực hiện','Tua đã hoàn thành','Tua đang thực hiện','Tua chưa thực hiện','C.ngắn','Doanh thu','CP Dầu','CP Ure','VETC','Lương TX ★','BD/SC','CP Khác','BX+TB+PS','Tổng CP','Lãi gộp','% Lãi'];
-  const fixc=[13];const stc=[3,4,5,6,7];
-  document.getElementById('t2').innerHTML='<thead><tr>'+H.map((h,i)=>'<th class="'+(i===0?'l ':'')+(fixc.includes(i)?'fix':'')+(stc.includes(i)?'st':'')+'">'+h+'</th>').join('')+'</tr></thead><tbody>'+
-    arr.map(x=>'<tr><td class="l"><b>'+x.b+'</b></td><td>'+x.n+'</td><td><b>'+F1(x.tua)+'</b></td>'+
-      '<td class="st">'+x.dHT+'</td><td class="st'+(x.dDang?' warn':'')+'">'+x.dDang+'</td>'+
-      '<td class="st">'+F1(x.tHT)+'</td><td class="st'+(x.tDang?' warn':'')+'">'+F1(x.tDang)+'</td><td class="st'+(x.tCht?' warn':'')+'">'+F1(x.tCht)+'</td>'+
-      '<td>'+x.short+'</td><td>'+F(x.dt)+'</td><td>'+F(x.fuel)+'</td>'+
+  const T=arr.reduce((s,x)=>{['n','tua','short','dt','fuel','ure','vetc','luong','bdsc','khac','bx','cp','lai'].forEach(k=>s[k]=(s[k]||0)+x[k]);return s;},{});
+  const H=['BSX','Số đơn hàng','Số tua','C.ngắn','Doanh thu','CP Dầu','CP Ure','VETC','Lương TX ★','BD/SC','CP Khác','BX+TB+PS','Tổng CP','Lãi gộp','% Lãi'];
+  const fixc=[8];
+  document.getElementById('t2').innerHTML='<thead><tr>'+H.map((h,i)=>'<th class="'+(i===0?'l ':'')+(fixc.includes(i)?'fix':'')+'">'+h+'</th>').join('')+'</tr></thead><tbody>'+
+    arr.map(x=>'<tr><td class="l"><b>'+x.b+'</b></td><td>'+x.n+'</td><td><b>'+F1(x.tua)+'</b></td><td>'+x.short+'</td><td>'+F(x.dt)+'</td><td>'+F(x.fuel)+'</td>'+
       '<td>'+F(x.ure)+'</td><td>'+F(x.vetc)+'</td><td class="fix">'+F(x.luong)+'</td><td>'+F(x.bdsc)+'</td><td>'+F(x.khac)+'</td>'+
       '<td>'+F(x.bx)+'</td><td>'+F(x.cp)+'</td><td>'+F(x.lai)+'</td><td><span class="pill '+(x.lai>=0?'p-good':'p-bad')+'">'+F1(pct(x.lai,x.dt))+'%</span></td></tr>').join('')+
-    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+F1(T.tua)+'</td><td class="st">'+T.dHT+'</td><td class="st">'+T.dDang+'</td><td class="st">'+F1(T.tHT)+'</td><td class="st">'+F1(T.tDang)+'</td><td class="st">'+F1(T.tCht)+'</td><td>'+T.short+'</td><td>'+F(T.dt)+'</td><td>'+F(T.fuel)+'</td><td>'+F(T.ure)+'</td><td>'+F(T.vetc)+'</td><td>'+F(T.luong)+'</td><td>'+F(T.bdsc)+'</td><td>'+F(T.khac)+'</td><td>'+F(T.bx)+'</td><td>'+F(T.cp)+'</td><td>'+F(T.lai)+'</td><td>'+F1(pct(T.lai,T.dt))+'%</td></tr>'+
-    '<tr class="pctrow" style="color:#6b7280;font-size:12px"><td class="l">% / Doanh thu</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>100%</td><td>'+F1(pct(T.fuel,T.dt))+'%</td><td>'+F1(pct(T.ure,T.dt))+'%</td><td>'+F1(pct(T.vetc,T.dt))+'%</td><td>'+F1(pct(T.luong,T.dt))+'%</td><td>'+F1(pct(T.bdsc,T.dt))+'%</td><td>'+F1(pct(T.khac,T.dt))+'%</td><td>'+F1(pct(T.bx,T.dt))+'%</td><td>'+F1(pct(T.cp,T.dt))+'%</td><td>'+F1(pct(T.lai,T.dt))+'%</td><td></td></tr></tfoot>';
+    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+F1(T.tua)+'</td><td>'+T.short+'</td><td>'+F(T.dt)+'</td><td>'+F(T.fuel)+'</td><td>'+F(T.ure)+'</td><td>'+F(T.vetc)+'</td><td>'+F(T.luong)+'</td><td>'+F(T.bdsc)+'</td><td>'+F(T.khac)+'</td><td>'+F(T.bx)+'</td><td>'+F(T.cp)+'</td><td>'+F(T.lai)+'</td><td>'+F1(pct(T.lai,T.dt))+'%</td></tr>'+
+    '<tr class="pctrow" style="color:#6b7280;font-size:12px"><td class="l">% / Doanh thu</td><td></td><td></td><td></td><td>100%</td><td>'+F1(pct(T.fuel,T.dt))+'%</td><td>'+F1(pct(T.ure,T.dt))+'%</td><td>'+F1(pct(T.vetc,T.dt))+'%</td><td>'+F1(pct(T.luong,T.dt))+'%</td><td>'+F1(pct(T.bdsc,T.dt))+'%</td><td>'+F1(pct(T.khac,T.dt))+'%</td><td>'+F1(pct(T.bx,T.dt))+'%</td><td>'+F1(pct(T.cp,T.dt))+'%</td><td>'+F1(pct(T.lai,T.dt))+'%</td><td></td></tr></tfoot>';
   drawVeh(arr);
 }
 function drawVeh(arr){const ctx=document.getElementById('chVeh');if(chV)chV.destroy();
@@ -248,6 +246,39 @@ function drawVeh(arr){const ctx=document.getElementById('chVeh');if(chV)chV.dest
    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+F(c.parsed.y)+' đ'}}},scales:{y:{ticks:{callback:v=>F(v/1e6)+'M'}},x:{ticks:{font:{size:10}}}}}});
 }
 
+function renderT2B(rows,f,t){
+  const own=rows.filter(o=>o.own&&o.bsx!=='(chưa gán)');
+  const g=groupBy(own,o=>o.bsx);
+  let arr=Object.keys(g).map(b=>{
+    const a=g[b];
+    let dHT=0,dDang=0,dCht=0,dHuy=0;
+    for(const o of a){const sg=stGroup(o.trangThai);if(sg==='ht')dHT++;else if(sg==='dang')dDang++;else if(sg==='cht')dCht++;else dHuy++;}
+    const mm={},mh={},tuaSt={};let short=0;
+    for(const o of a){const u=(o.tua||'').trim();if(!u)continue;
+      if(/^[\d.,]+$/.test(u)){const num=parseFloat(u.replace(',','.'));if(!isNaN(num)){
+        const dN=o.ngayNhan||'';if(!dN||dN<f||dN>t)continue;const ym=dN.slice(0,7);let k,w;
+        if(num>=1){mm[ym]=Math.max(mm[ym]||0,num);k=ym+'#'+num;w=1;}else{(mh[ym]=mh[ym]||new Set()).add(dN);k='H'+dN;w=0.5;}
+        const e=tuaSt[k]||(tuaSt[k]={w,ht:0,dang:0,cht:0});const sg=stGroup(o.trangThai);
+        if(sg==='ht')e.ht++;else if(sg==='dang')e.dang++;else if(sg==='cht')e.cht++;}}
+      else short++;}
+    let tua=0;for(const ym of new Set([...Object.keys(mm),...Object.keys(mh)]))tua+=(mm[ym]||0)+0.5*((mh[ym]&&mh[ym].size)||0);
+    let tHT=0,tDang=0,tCht=0;
+    for(const k in tuaSt){const e=tuaSt[k];if(e.dang>0||(e.ht>0&&e.cht>0))tDang+=e.w;else if(e.ht>0)tHT+=e.w;else tCht+=e.w;}
+    const rd=Math.round((tua-(tHT+tDang+tCht))*10)/10;if(rd>0)tCht+=rd;
+    return {b,n:a.length,dHT,dDang,dCht,dHuy,tua,tHT,tDang,tCht,short};
+  }).filter(x=>x.n>0);
+  arr.sort((x,y)=>y.n-x.n||y.tua-x.tua);
+  const T=arr.reduce((s,x)=>{['n','dHT','dDang','dCht','dHuy','tua','tHT','tDang','tCht','short'].forEach(k=>s[k]=(s[k]||0)+x[k]);return s;},{n:0,dHT:0,dDang:0,dCht:0,dHuy:0,tua:0,tHT:0,tDang:0,tCht:0,short:0});
+  const H=['BSX','Tổng đơn','Đơn đã hoàn thành','Đơn đang thực hiện','Đơn chưa thực hiện','Đơn hủy','Tổng tua','Tua đã hoàn thành','Tua đang thực hiện','Tua chưa thực hiện','C.ngắn','% đơn hoàn thành'];
+  const stc=[2,3,4,6,7,8,9];
+  const cell=(v,i,w)=>'<td class="'+(stc.includes(i)?'st':'')+(w&&v?' warn':'')+'">'+v+'</td>';
+  document.getElementById('t2b').innerHTML='<thead><tr>'+H.map((h,i)=>'<th class="'+(i===0?'l ':'')+(stc.includes(i)?'st':'')+'">'+h+'</th>').join('')+'</tr></thead><tbody>'+
+    arr.map(x=>{const p=x.n?x.dHT/x.n*100:0;return '<tr><td class="l"><b>'+x.b+'</b></td><td><b>'+x.n+'</b></td>'+
+      cell(x.dHT,2)+cell(x.dDang,3,1)+cell(x.dCht,4,1)+cell(x.dHuy,5,1)+
+      '<td><b>'+F1(x.tua)+'</b></td>'+cell(F1(x.tHT),7)+cell(F1(x.tDang),8,x.tDang)+cell(F1(x.tCht),9,x.tCht)+
+      '<td>'+x.short+'</td><td><span class="pill '+(p>=90?'p-good':(p>=70?'p-warn':'p-bad'))+'">'+F1(p)+'%</span></td></tr>';}).join('')+
+    '</tbody><tfoot><tr><td class="l">TỔNG</td><td>'+T.n+'</td><td>'+T.dHT+'</td><td>'+T.dDang+'</td><td>'+T.dCht+'</td><td>'+T.dHuy+'</td><td>'+F1(T.tua)+'</td><td>'+F1(T.tHT)+'</td><td>'+F1(T.tDang)+'</td><td>'+F1(T.tCht)+'</td><td>'+T.short+'</td><td>'+F1(T.n?T.dHT/T.n*100:0)+'%</td></tr></tfoot>';
+}
 function renderT3(rows){
   const comm=rows.filter(o=>!o.own);const g=groupBy(comm,o=>o.ncc);
   const allComm=ORDERS.filter(o=>!o.own);const allG=groupBy(allComm,o=>o.ncc);
