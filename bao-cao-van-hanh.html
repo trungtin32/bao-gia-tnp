@@ -45,6 +45,11 @@ table.t thead th.fix{background:#b45309}
 table.t thead th.st{background:#13a89e}
 table.t td.st{background:#eefaf8}
 table.t td.warn{color:#b45309;font-weight:700}
+#t2b{min-width:0;font-size:12px}
+#t2b th,#t2b td{padding:5px 6px}
+#t2b thead th{position:static;white-space:normal;line-height:1.25;font-size:10.5px;letter-spacing:0}
+#t2b thead th.grp{background:#0b5a73;font-size:11px;letter-spacing:.04em}
+#t2b thead th.st.grp{background:#0f8f87}
 table.t td.fix{background:var(--fix)}
 table.t tbody tr:hover{background:var(--accent)}
 table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--brand)}
@@ -105,7 +110,7 @@ table.t tfoot td{font-weight:700;background:#eaf2f5;border-top:2px solid var(--b
 
   <div class="card">
     <h2><span class="tag">BẢNG 2B</span> Tiến độ đơn hàng &amp; tua theo xe</h2>
-    <p class="cap">Bảng thống kê riêng, không đụng đến số liệu tài chính ở BẢNG 2. Lấy từ cột <b>Trạng thái đơn hàng</b> của sheet NHẬP ĐƠN HÀNG: <b>Đã hoàn thành</b> = "Đã giao hàng" · <b>Đang thực hiện</b> = "Đang trung chuyển" / "Đã lấy hàng" · <b>Chưa thực hiện</b> = "Chờ lấy hàng" hoặc để trống. Một tua tính hoàn thành khi mọi đơn trong tua đã giao; còn đơn đang chạy hoặc mới giao một phần thì tính đang thực hiện. Ba cột tua luôn cộng đúng bằng Tổng tua.</p>
+    <p class="cap">Bảng thống kê riêng, không đụng đến số liệu tài chính ở BẢNG 2. Lấy từ cột <b>Trạng thái đơn hàng</b> của sheet NHẬP ĐƠN HÀNG: <b>Đã hoàn thành</b> = "Đã giao hàng" · <b>Đang thực hiện</b> = "Đang trung chuyển" / "Đã lấy hàng" · <b>Chưa thực hiện</b> = "Chờ lấy hàng" hoặc để trống. Một tua tính hoàn thành khi mọi đơn trong tua đã giao; còn đơn đang chạy hoặc mới giao một phần thì tính đang thực hiện. Ba cột tua luôn cộng đúng bằng Tổng tua. <i>Đã HT = đã hoàn thành · Đang TH = đang thực hiện · Chưa TH = chưa thực hiện · % ĐHT = tỷ lệ đơn đã hoàn thành.</i></p>
     <div class="scroll"><table class="t" id="t2b"></table></div>
   </div>
 
@@ -269,10 +274,11 @@ function renderT2B(rows,f,t){
   }).filter(x=>x.n>0);
   arr.sort((x,y)=>y.n-x.n||y.tua-x.tua);
   const T=arr.reduce((s,x)=>{['n','dHT','dDang','dCht','dHuy','tua','tHT','tDang','tCht','short'].forEach(k=>s[k]=(s[k]||0)+x[k]);return s;},{n:0,dHT:0,dDang:0,dCht:0,dHuy:0,tua:0,tHT:0,tDang:0,tCht:0,short:0});
-  const H=['BSX','Tổng đơn','Đơn đã hoàn thành','Đơn đang thực hiện','Đơn chưa thực hiện','Đơn hủy','Tổng tua','Tua đã hoàn thành','Tua đang thực hiện','Tua chưa thực hiện','C.ngắn','% đơn hoàn thành'];
-  const stc=[2,3,4,6,7,8,9];
+  const THEAD='<thead><tr><th class="l" rowspan="2">BSX</th><th class="grp" colspan="5">ĐƠN HÀNG</th><th class="grp st" colspan="4">TUA</th><th rowspan="2">C.ngắn</th><th rowspan="2">% ĐHT</th></tr>'+
+    '<tr><th>Tổng</th><th class="st">Đã HT</th><th class="st">Đang TH</th><th class="st">Chưa TH</th><th>Hủy</th><th>Tổng</th><th class="st">Đã HT</th><th class="st">Đang TH</th><th class="st">Chưa TH</th></tr></thead>';
+  const stc=[2,3,4,7,8,9];
   const cell=(v,i,w)=>'<td class="'+(stc.includes(i)?'st':'')+(w&&v?' warn':'')+'">'+v+'</td>';
-  document.getElementById('t2b').innerHTML='<thead><tr>'+H.map((h,i)=>'<th class="'+(i===0?'l ':'')+(stc.includes(i)?'st':'')+'">'+h+'</th>').join('')+'</tr></thead><tbody>'+
+  document.getElementById('t2b').innerHTML=THEAD+'<tbody>'+
     arr.map(x=>{const p=x.n?x.dHT/x.n*100:0;return '<tr><td class="l"><b>'+x.b+'</b></td><td><b>'+x.n+'</b></td>'+
       cell(x.dHT,2)+cell(x.dDang,3,1)+cell(x.dCht,4,1)+cell(x.dHuy,5,1)+
       '<td><b>'+F1(x.tua)+'</b></td>'+cell(F1(x.tHT),7)+cell(F1(x.tDang),8,x.tDang)+cell(F1(x.tCht),9,x.tCht)+
