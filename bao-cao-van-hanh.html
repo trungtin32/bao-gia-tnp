@@ -59,7 +59,6 @@ table.t td.warn{color:#b45309;font-weight:700}
 #t2b tfoot td.cDon{background:#dce9f0}
 #t2b tfoot td.cTua{background:#daece7}
 #t2b tfoot td.cCn{background:#f2e6d3}
-#t2b td.zero{color:#c7cdd4}
 #t2b td.warn{color:#b45309;font-weight:700}
 table.t td.fix{background:var(--fix)}
 table.t tbody tr:hover{background:var(--accent)}
@@ -288,11 +287,11 @@ function renderT2B(rows,f,t){
   const THEAD='<thead><tr><th rowspan="2">BSX</th><th colspan="5">ĐƠN HÀNG</th><th class="gTua" colspan="3">TUA</th><th class="gCn" rowspan="2">C.ngắn</th><th rowspan="2">% ĐHT</th></tr>'+
     '<tr><th>Tổng</th><th>Đã HT</th><th>Đang TH</th><th>Chưa TH</th><th>Hủy</th><th class="cTua">Tổng</th><th class="cTua">Đã HT</th><th class="cTua">Đang TH</th></tr></thead>';
   const Z=v=>parseFloat(String(v).replace(',','.'))||0;
-  const cell=(v,c,w)=>'<td class="'+c+(Z(v)?(w?' warn':''):' zero')+'">'+v+'</td>';
+  const cell=(v,c,w)=>'<td class="'+c+(Z(v)&&w?' warn':'')+'">'+v+'</td>';
   document.getElementById('t2b').innerHTML=THEAD+'<tbody>'+
     arr.map(x=>{const p=x.n?x.dHT/x.n*100:0;return '<tr><td class="l"><b>'+x.b+'</b></td><td class="cDon"><b>'+x.n+'</b></td>'+
       cell(x.dHT,'cDon')+cell(x.dDang,'cDon',1)+cell(x.dCht,'cDon',1)+cell(x.dHuy,'cDon',1)+
-      '<td class="cTua'+(x.tua?'':' zero')+'"><b>'+F1(x.tua)+'</b></td>'+cell(F1(x.tHT),'cTua')+cell(F1(x.tDang),'cTua',1)+
+      '<td class="cTua"><b>'+F1(x.tua)+'</b></td>'+cell(F1(x.tHT),'cTua')+cell(F1(x.tDang),'cTua',1)+
       cell(x.short,'cCn')+'<td><b>'+F1(p)+'%</b></td></tr>';}).join('')+
     '</tbody><tfoot><tr><td class="l">TỔNG</td><td class="cDon">'+T.n+'</td><td class="cDon">'+T.dHT+'</td><td class="cDon">'+T.dDang+'</td><td class="cDon">'+T.dCht+'</td><td class="cDon">'+T.dHuy+'</td><td class="cTua">'+F1(T.tua)+'</td><td class="cTua">'+F1(T.tHT)+'</td><td class="cTua">'+F1(T.tDang)+'</td><td class="cCn">'+T.short+'</td><td>'+F1(T.n?T.dHT/T.n*100:0)+'%</td></tr></tfoot>';
 }
