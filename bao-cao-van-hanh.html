@@ -146,7 +146,7 @@ function vdate(s){const m=/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec((s||'').trim(
 function cleanS(s){return (s||'').replace(/\s+/g,' ').trim();}
 function _noAcc(v){v=(v||'').toString().toLowerCase().normalize('NFD');let o='';for(const c of v){const k=c.charCodeAt(0);if(k>=768&&k<=879)continue;o+=(c==='đ'?'d':c);}return o.trim();}
 function stGroup(v){const x=_noAcc(v);if(!x)return 'cht';
- if(x.includes('huy')||x.includes('cancel'))return 'huy';
+ if(x.startsWith('huy')||x.includes('da huy')||x.includes('huy don')||x.includes('huy chuyen')||x.includes('cancel'))return 'huy';
  if(x.includes('da giao')||x.includes('giao xong')||x.includes('hoan thanh')||x.includes('da tra hang'))return 'ht';
  if(x.includes('dang')||x.includes('da lay')||x.includes('da nhan hang')||x.includes('tren duong')||x.includes('trung chuyen')||x.includes('van chuyen'))return 'dang';
  if(x.includes('cho')||x.includes('chua')||x.includes('ke hoach'))return 'cht';
