@@ -191,17 +191,20 @@ function populateCarFilter() {
   plates.forEach(p => { const o = new Option(p, p); sel.add(o); });
 }
 
+// Định dạng YYYY-MM-DD theo giờ máy (tránh toISOString bị lùi 1 ngày ở múi giờ +7)
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
 function setDefaultDates() {
   const now = new Date();
-  document.getElementById('from').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
-  document.getElementById('to').value = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+  document.getElementById('from').value = ymd(new Date(now.getFullYear(), now.getMonth(), 1));
+  document.getElementById('to').value = ymd(new Date(now.getFullYear(), now.getMonth()+1, 0));
 }
 
 function getFiltered() {
   const fromStr = document.getElementById('from').value;
   const toStr = document.getElementById('to').value;
   const carVal = document.getElementById('carFilter').value;
-  const from = fromStr ? new Date(fromStr) : null;
+  const from = fromStr ? new Date(fromStr + 'T00:00:00') : null;
   const to = toStr ? new Date(toStr + 'T23:59:59') : null;
   return allRows.filter(r => {
     const d = parseDate(r[COL.date]);
@@ -442,8 +445,8 @@ document.getElementById('presets').addEventListener('click', e => {
     from = new Date(2024, 0, 1);
     to   = new Date(now.getFullYear(), 11, 31);
   }
-  document.getElementById('from').value = from.toISOString().slice(0,10);
-  document.getElementById('to').value   = to.toISOString().slice(0,10);
+  document.getElementById('from').value = ymd(from);
+  document.getElementById('to').value   = ymd(to);
   document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
   render();
 });
