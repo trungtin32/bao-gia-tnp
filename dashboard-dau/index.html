@@ -17,6 +17,11 @@ h1{font-size:21px;margin:0}
 .fld{display:flex;flex-direction:column;gap:4px}
 .fld label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
 .fld input,.fld select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff;color:var(--ink)}
+.dwrap{position:relative;display:flex;align-items:center}
+.dwrap .dtxt{width:150px;padding-right:34px}
+.dwrap .dbtn{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:16px;padding:4px;line-height:1}
+.dwrap .dpick{position:absolute;right:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0}
+.dwrap .dtxt.bad{border-color:#dc2626;background:#fff5f5}
 .presets{display:flex;gap:6px;flex-wrap:wrap}
 .presets button{padding:7px 11px;border:1px solid var(--line);background:#fff;border-radius:999px;font-size:12.5px;cursor:pointer;color:var(--ink);transition:all .15s}
 .presets button:hover,.presets button.on{border-color:var(--oil);color:var(--oil);background:var(--accent)}
@@ -78,8 +83,8 @@ table.t tfoot td{font-weight:700;background:#fef3c7;border-top:2px solid var(--o
   </div>
 
   <div class="filterbar">
-    <div class="fld"><label>Từ ngày</label><input type="date" id="from"></div>
-    <div class="fld"><label>Đến ngày</label><input type="date" id="to"></div>
+    <div class="fld"><label>Từ ngày</label><div class="dwrap"><input type="text" class="dtxt" data-for="from" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off"><button type="button" class="dbtn" data-for="from" title="Chọn ngày">📅</button><input type="date" id="from" class="dpick" tabindex="-1"></div></div>
+    <div class="fld"><label>Đến ngày</label><div class="dwrap"><input type="text" class="dtxt" data-for="to" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off"><button type="button" class="dbtn" data-for="to" title="Chọn ngày">📅</button><input type="date" id="to" class="dpick" tabindex="-1"></div></div>
     <div class="fld"><label>Xe (BSX)</label>
       <select id="carFilter"><option value="">TẤT CẢ</option></select>
     </div>
@@ -194,10 +199,16 @@ function populateCarFilter() {
 // Định dạng YYYY-MM-DD theo giờ máy (tránh toISOString bị lùi 1 ngày ở múi giờ +7)
 function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
+// YYYY-MM-DD -> dd/mm/yyyy để hiển thị
+function dmy(iso){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||'');return m?`${m[3]}/${m[2]}/${m[1]}`:'';}
+// Đồng bộ ô hiển thị dd/mm/yyyy với ô ngày ẩn
+function syncDateText(){document.querySelectorAll('.dtxt').forEach(t=>{t.value=dmy(document.getElementById(t.dataset.for).value);t.classList.remove('bad');});}
+
 function setDefaultDates() {
   const now = new Date();
   document.getElementById('from').value = ymd(new Date(now.getFullYear(), now.getMonth(), 1));
   document.getElementById('to').value = ymd(new Date(now.getFullYear(), now.getMonth()+1, 0));
+  syncDateText();
 }
 
 function getFiltered() {
@@ -260,9 +271,10 @@ function render() {
   const filtered = getFiltered();
   const vehs = aggregate(filtered);
 
+  syncDateText();
   // Update range line
-  const from = document.getElementById('from').value;
-  const to = document.getElementById('to').value;
+  const from = dmy(document.getElementById('from').value);
+  const to = dmy(document.getElementById('to').value);
   const car = document.getElementById('carFilter').value;
   document.getElementById('rangeline').textContent =
     `Kỳ: ${from || '—'} → ${to || '—'} · ${car || 'Tất cả xe'} · ${filtered.length} lần đổ`;
@@ -452,6 +464,24 @@ document.getElementById('presets').addEventListener('click', e => {
 });
 
 document.getElementById('from').addEventListener('change', render);
+// Ô nhập dd/mm/yyyy: gõ tay (vd 1/9/2026, 01-09-26) rồi Enter hoặc rời ô
+document.querySelectorAll('.dtxt').forEach(t => {
+  const apply = () => {
+    const pick = document.getElementById(t.dataset.for);
+    const v = t.value.trim();
+    if (!v) { if (pick.value) { pick.value = ''; render(); } return; }
+    const m = /^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2}|\d{4})$/.exec(v);
+    let ok = false;
+    if (m) { let d=+m[1], mo=+m[2], y=+m[3]; if (y<100) y+=2000; const dt=new Date(y, mo-1, d); ok = dt.getFullYear()===y && dt.getMonth()===mo-1 && dt.getDate()===d; if (ok) { const iso = ymd(dt); if (pick.value !== iso) { pick.value = iso; render(); } else syncDateText(); } }
+    t.classList.toggle('bad', !ok);
+  };
+  t.addEventListener('change', apply);
+  t.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); apply(); } });
+});
+document.querySelectorAll('.dbtn').forEach(b => b.addEventListener('click', () => {
+  const pick = document.getElementById(b.dataset.for);
+  try { pick.showPicker(); } catch (e) { pick.focus(); pick.click(); }
+}));
 document.getElementById('to').addEventListener('change', render);
 document.getElementById('carFilter').addEventListener('change', render);
 document.getElementById('reload').addEventListener('click', loadData);
