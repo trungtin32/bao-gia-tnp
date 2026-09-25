@@ -89,6 +89,7 @@
       <button class="tb" data-p="d">Cost_Tuyến Trục Nam Bắc</button>
       <button class="tb" data-p="m">Định mức</button>
       <button id="tb-th" class="tb" data-p="th">🏷️ Bảng Giá Thu Hoàng</button>
+      <button class="tb" data-p="k">Kế hoạch CP–DT</button>
     </div>
 
     <div id="pane-e">
@@ -142,6 +143,13 @@
 </div>
 </div>
 <div id="pane-m" style="display:none"><h3 class="sec">Định mức đầu vào</h3><table id="t3"></table></div>
+    <div id="pane-k" style="display:none">
+      <h3 class="sec">Kế hoạch Chi phí – Doanh thu (tuyến Bắc–Nam, T7–T12/2026)</h3>
+      <p class="hint">1 tua = 2 chuyến (đi + về). Sản lượng = số xe × tua/xe, nhập theo từng tháng cho từng loại xe. Xe tăng giữa tháng ghi 1,5 (nửa tháng). Dùng chung Giá dầu &amp; % CP/DT ở thanh trên. Chỉ tuyến Hà Nội (8T &amp; 15T).</p>
+      <table id="kh-input"></table>
+      <div id="kh-kpi" style="display:flex;gap:12px;flex-wrap:wrap;margin:14px 0"></div>
+      <table id="kh-table"></table>
+    </div>
   </div>
 </div>
 
@@ -256,5 +264,116 @@ render();
 (function(){var b=document.getElementById("tb-th"),p=document.getElementById("pane-th");if(!b||!p)return;var others=[].slice.call(document.querySelectorAll(".tabs .tb")).filter(function(x){return x!==b;});b.addEventListener("click",function(){["e","q","d","m"].forEach(function(k){var el=document.getElementById("pane-"+k);if(el)el.style.display="none";});others.forEach(function(x){x.classList.remove("on");});p.style.display="block";b.classList.add("on");});others.forEach(function(x){x.addEventListener("click",function(){p.style.display="none";b.classList.remove("on");});});})();
 </script>
 <script src="kh-cp-dt.js"></script>
+
+<script>
+/* ===== KE HOACH CP-DT v2 : nhap so xe & tua/xe theo tung thang, tung loai xe ===== */
+(function(){
+  var THANG=["T7/26","T8/26","T9/26","T10/26","T11/26","T12/26"];
+  var XE8 =[6,6,6,6,7,7];
+  var XE15=[1,1,1,1.5,2,2];
+  var TUA8=[4,4.5,5,4.5,5,5];
+  var TUA15=[4,4.5,5,4.5,5,5];
+  // dinh muc 1 chieu (giong tab Cost)
+  var R8 ={km:1710,dau:20,ure:0.9,up:13200,luong:4000000,bdKm:300,vetcVAT:2605967};
+  var R15={km:1710,dau:23,ure:1.2,up:13200,luong:4250000,bdKm:350,vetcVAT:3790356};
+  function _d(){return parseFloat(document.getElementById("ds").value)||0;}
+  function _m(){return parseFloat(document.getElementById("rt").value)||0.75;}
+  function comp(r,d){return{fuel:r.km*r.dau/100*d, ure:r.km*r.ure/100*r.up, luong:r.luong, bd:r.km*r.bdKm, vetc:r.vetcVAT/1.08};}
+  function cost1(r,d){var c=comp(r,d);return c.fuel+c.ure+c.luong+c.bd+c.vetc;}
+  function dtTua(r,d,m){return Math.round(2*cost1(r,d)/m/1e5)*1e5;}
+  var VF=function(n){return Math.round(n).toLocaleString('vi-VN');};
+  window.setKH=function(k,i,v){var x=parseFloat(v);x=isNaN(x)?0:x;({xe8:XE8,xe15:XE15,tua8:TUA8,tua15:TUA15})[k][i]=x;renderKeHoach();};
+  function buildInputs(){
+    var host=document.getElementById("kh-input"); if(!host) return;
+    var h='<thead><tr><th class="l">Thông số / tháng</th>';
+    for(var i=0;i<6;i++) h+='<th>'+THANG[i]+'</th>'; h+='</tr></thead><tbody>';
+    function row(lbl,k,arr,hint){
+      var r='<tr><td class="l" style="text-align:left">'+lbl+(hint?' <span style="color:#94a3b8;font-weight:400">'+hint+'</span>':'')+'</td>';
+      for(var i=0;i<6;i++) r+='<td><input style="width:60px;text-align:center;border:1.5px solid #d9e7f1;border-radius:7px;padding:5px 4px;font-weight:700;color:#0E84BC;font-size:13px" value="'+arr[i]+'" onchange="setKH(\''+k+'\','+i+',this.value)"></td>';
+      return r+'</tr>';
+    }
+    h+=row('Số xe 8T','xe8',XE8);
+    h+=row('Số xe 15T','xe15',XE15,'(nửa tháng = 1,5)');
+    h+=row('Tua/xe 8T','tua8',TUA8);
+    h+=row('Tua/xe 15T','tua15',TUA15);
+    h+='</tbody>';
+    host.innerHTML=h;
+  }
+  function renderKeHoach(){
+    var host=document.getElementById("kh-table"); if(!host) return;
+    var d=_d(), m=_m();
+    var c8=comp(R8,d), c15=comp(R15,d), dt8=dtTua(R8,d,m), dt15=dtTua(R15,d,m);
+    var a8=[],a15=[],tot=[],DT8=[],DT15=[],DAU=[],URE=[],VETC=[],BD=[],LG=[],CP=[],DT=[],LN=[];
+    var i, S={a8:0,a15:0,tot:0,dt8:0,dt15:0,dau:0,ure:0,vetc:0,bd:0,lg:0,cp:0,dt:0,ln:0};
+    for(i=0;i<6;i++){
+      a8[i]=XE8[i]*TUA8[i]; a15[i]=XE15[i]*TUA15[i]; tot[i]=a8[i]+a15[i];
+      DT8[i]=dt8*a8[i]; DT15[i]=dt15*a15[i];
+      DAU[i]=2*(c8.fuel*a8[i]+c15.fuel*a15[i]);
+      URE[i]=2*(c8.ure*a8[i]+c15.ure*a15[i]);
+      VETC[i]=2*(c8.vetc*a8[i]+c15.vetc*a15[i]);
+      BD[i]=2*(c8.bd*a8[i]+c15.bd*a15[i]);
+      LG[i]=2*(c8.luong*a8[i]+c15.luong*a15[i]);
+      CP[i]=DAU[i]+URE[i]+VETC[i]+BD[i]+LG[i];
+      DT[i]=DT8[i]+DT15[i]; LN[i]=DT[i]-CP[i];
+      S.a8+=a8[i];S.a15+=a15[i];S.tot+=tot[i];S.dt8+=DT8[i];S.dt15+=DT15[i];
+      S.dau+=DAU[i];S.ure+=URE[i];S.vetc+=VETC[i];S.bd+=BD[i];S.lg+=LG[i];S.cp+=CP[i];S.dt+=DT[i];S.ln+=LN[i];
+    }
+    var C=8; // 1 label + 6 thang + 1 ca ky
+    function hdr(t){return '<tr><td colspan="'+C+'" style="background:#0E84BC;color:#fff;font-weight:700;text-align:left;padding:7px 10px">'+t+'</td></tr>';}
+    function line(lbl,arr,tot2,o){o=o||{};
+      var st=o.style||'', lst=o.lstyle||'';
+      var r='<tr'+(o.rowstyle?' style="'+o.rowstyle+'"':'')+'><td class="l" style="text-align:left;'+lst+'">'+lbl+'</td>';
+      for(var i=0;i<6;i++) r+='<td style="'+st+'">'+VF(arr[i])+'</td>';
+      r+='<td style="font-weight:700;'+st+'">'+VF(tot2)+'</td></tr>'; return r;
+    }
+    var pc=(m? ((1-m)*100).toFixed(1).replace('.',',') : '0');
+    var html='<thead><tr><th class="l" style="text-align:left">Chỉ tiêu</th>';
+    for(i=0;i<6;i++) html+='<th>'+THANG[i]+'</th>'; html+='<th>Cả kỳ</th></tr></thead><tbody>';
+    html+=hdr('SẢN LƯỢNG (tua) · 1 tua = 2 chuyến');
+    html+=line('Tua 8T-HN',a8,S.a8);
+    html+=line('Tua 15T-HN',a15,S.a15);
+    html+=line('Tổng tua',tot,S.tot,{rowstyle:'background:#f1f5f9',lstyle:'font-weight:700',style:'font-weight:700'});
+    html+=hdr('DOANH THU (đ) · giá bán theo '+(m*100)+'% CP/DT');
+    html+=line('8T-HN',DT8,S.dt8);
+    html+=line('15T-HN',DT15,S.dt15);
+    html+=line('TỔNG DOANH THU',DT,S.dt,{rowstyle:'background:#e3f3fc',lstyle:'font-weight:800;color:#0E84BC',style:'font-weight:800;color:#0E84BC'});
+    html+=hdr('CHI PHÍ (đ)');
+    html+=line('Dầu (theo giá dầu)',DAU,S.dau);
+    html+=line('Ure/AdBlue',URE,S.ure);
+    html+=line('VETC (chưa VAT)',VETC,S.vetc);
+    html+=line('Bảo dưỡng',BD,S.bd);
+    html+=line('Lương lái xe',LG,S.lg);
+    html+=line('TỔNG CHI PHÍ',CP,S.cp,{rowstyle:'background:#f1f5f9',lstyle:'font-weight:700',style:'font-weight:700'});
+    html+=hdr('TỔNG HỢP');
+    html+=line('LỢI NHUẬN',LN,S.ln,{rowstyle:'background:#fff3d6',lstyle:'font-weight:800;color:#b45309',style:'font-weight:800;color:#b45309'});
+    var br='<tr><td class="l" style="text-align:left">Biên lợi nhuận %</td>';
+    for(i=0;i<6;i++) br+='<td>'+(DT[i]? (LN[i]/DT[i]*100).toFixed(1):'0')+'%</td>';
+    br+='<td style="font-weight:700">'+(S.dt? (S.ln/S.dt*100).toFixed(1):'0')+'%</td></tr>';
+    html+=br+'</tbody>';
+    host.innerHTML=html;
+    var kpi=document.getElementById("kh-kpi");
+    if(kpi) kpi.innerHTML=
+      card('DOANH THU CẢ KỲ',VF(S.dt)+' đ','#0E84BC')+
+      card('CHI PHÍ CẢ KỲ',VF(S.cp)+' đ','#143a66')+
+      card('LỢI NHUẬN CẢ KỲ',VF(S.ln)+' đ','#16a34a')+
+      card('BIÊN LỢI NHUẬN',(S.dt?(S.ln/S.dt*100).toFixed(1):'0')+'%','#b45309');
+  }
+  function card(t,v,c){return '<div style="flex:1;min-width:150px;background:#fff;border:1px solid #e5eef5;border-radius:11px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05)"><div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px">'+t+'</div><div style="font-size:1.25rem;font-weight:800;color:'+c+';margin-top:4px">'+v+'</div></div>';}
+  window.renderKeHoach=renderKeHoach;
+  ["ds","rt"].forEach(function(id){var e=document.getElementById(id);if(e){e.addEventListener("input",renderKeHoach);e.addEventListener("change",renderKeHoach);}});
+  // hien/an pane-k (trinh chuyen tab goc dung mang cung, khong tu quan ly pane-k)
+  document.querySelectorAll('.tb').forEach(function(b){
+    b.addEventListener('click',function(){
+      var pk=document.getElementById('pane-k');
+      if(b.dataset.p==='k'){
+        ['e','q','d','m','th'].forEach(function(p){var el=document.getElementById('pane-'+p); if(el) el.style.display='none';});
+        if(pk) pk.style.display='block';
+      } else { if(pk) pk.style.display='none'; }
+    });
+  });
+  buildInputs(); renderKeHoach();
+})();
+
+</script>
 </body>
 </html>
