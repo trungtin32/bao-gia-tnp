@@ -274,6 +274,7 @@ render();
   // dinh muc 1 chieu (giong tab Cost)
   var R8 ={km:1710,dau:20,ure:0.9,up:13200,luong:4000000,bdKm:300,vetcVAT:2605967};
   var R15={km:1710,dau:23,ure:1.2,up:13200,luong:4250000,bdKm:350,vetcVAT:3790356};
+  var BD_THUC=[null,null,null,17523955,9724143,27248098];
   function _d(){return parseFloat(document.getElementById("ds").value)||0;}
   function _m(){return parseFloat(document.getElementById("rt").value)||0.75;}
   function comp(r,d){return{fuel:r.km*r.dau/100*d, ure:r.km*r.ure/100*r.up, luong:r.luong, bd:r.km*r.bdKm, vetc:r.vetcVAT/1.08};}
@@ -309,7 +310,7 @@ render();
       DAU[i]=2*(c8.fuel*a8[i]+c15.fuel*a15[i]);
       URE[i]=2*(c8.ure*a8[i]+c15.ure*a15[i]);
       VETC[i]=2*(c8.vetc*a8[i]+c15.vetc*a15[i]);
-      BD[i]=2*(c8.bd*a8[i]+c15.bd*a15[i]);
+      BD[i]=(BD_THUC[i]!=null)?BD_THUC[i]:2*(c8.bd*a8[i]+c15.bd*a15[i]);
       LG[i]=2*(c8.luong*a8[i]+c15.luong*a15[i]);
       CP[i]=DAU[i]+URE[i]+VETC[i]+BD[i]+LG[i];
       DT[i]=DT8[i]+DT15[i]; LN[i]=DT[i]-CP[i];
