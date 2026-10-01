@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>TNP TMS · Quản trị vận tải</title>
+<style>
+  body{font-family:"Segoe UI",Arial,sans-serif;background:#EEF1F4;color:#16212C;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px;box-sizing:border-box}
+  .c{background:#fff;padding:28px 30px;border-radius:14px;box-shadow:0 8px 24px -12px rgba(0,0,0,.25);text-align:center;max-width:420px;width:100%}
+  .m{width:44px;height:44px;border-radius:11px;background:linear-gradient(155deg,#1D4E70,#123449);color:#fff;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-size:15px}
+  a{color:#1D4E70;font-weight:600} .s{color:#56667A;font-size:14px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="c">
+  <div class="m">TNP</div>
+  <h2 style="margin:12px 0 6px">TNP TMS</h2>
+  <p class="s" id="s">Đang mở hệ thống quản trị vận tải…</p>
+  <p id="a"></p>
+</div>
+<script>
+// Đọc link mới nhất mà máy chủ TNP TMS gửi lên kênh ntfy, chỉ nhận link có chữ ký số hợp lệ của máy chủ.
+(async function () {
+  var TOPIC = 'tnp-tms-0db095188e60036150';
+  var KEY = {"kty":"EC","crv":"P-256","x":"UBjL4VkAz1XCC2FDcYiWCdLtTeJ7rZnoeo19YcRlthU","y":"t5o6Bu7_4C_HB-1kzBQ6--bN8P-doqERWlAoq5SaOQ4"};
+  var s = document.getElementById('s');
+  function b64(x) { x = x.replace(/-/g, '+').replace(/_/g, '/'); while (x.length % 4) x += '='; var r = atob(x), u = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) u[i] = r.charCodeAt(i); return u; }
+  try {
+    var key = await crypto.subtle.importKey('jwk', KEY, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+    var res = await fetch('https://ntfy.sh/' + TOPIC + '/json?poll=1&since=12h', { cache: 'no-store' });
+    var lines = (await res.text()).trim().split('\n'), best = null;
+    for (var i = 0; i < lines.length; i++) {
+      try {
+        var m = JSON.parse(lines[i]); if (m.event !== 'message') continue;
+        var d = JSON.parse(m.message);
+        if (!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(d.u)) continue;
+        var ok = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, b64(d.s), new TextEncoder().encode(d.u));
+        if (ok && (!best || d.t > best.t)) best = d;
+      } catch (e) { /* bỏ qua tin không hợp lệ */ }
+    }
+    if (best) {
+      document.getElementById('a').innerHTML = '<a href="' + best.u + '">Bấm vào đây nếu không tự chuyển</a>';
+      location.replace(best.u + location.hash);
+    } else {
+      s.textContent = 'Hệ thống đang tắt (máy chủ chưa bật hoặc mất mạng). Vui lòng thử lại sau ít phút.';
+    }
+  } catch (e) {
+    s.textContent = 'Không kết nối được. Vui lòng tải lại trang (F5).';
+  }
+})();
+</script>
+</body>
+</html>
