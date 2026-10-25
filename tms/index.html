@@ -20,24 +20,40 @@
   <p id="a"></p>
 </div>
 <script>
-// Đọc link mới nhất mà máy chủ TNP TMS gửi lên kênh ntfy, chỉ nhận link có chữ ký số hợp lệ của máy chủ.
+// TNP_LINK_2_NGUON — đọc link mới nhất từ 2 nguồn: kênh ntfy và tệp tms/link.json trên GitHub; chỉ nhận link có chữ ký số hợp lệ của máy chủ.
 (async function () {
-  var TOPIC = 'tnp-tms-0db095188e60036150';
+  var TOPIC = "tnp-tms-0db095188e60036150";
   var KEY = {"kty":"EC","crv":"P-256","x":"UBjL4VkAz1XCC2FDcYiWCdLtTeJ7rZnoeo19YcRlthU","y":"t5o6Bu7_4C_HB-1kzBQ6--bN8P-doqERWlAoq5SaOQ4"};
+  var GH_API = "https://api.github.com/repos/trungtin32/bao-gia-tnp/contents/tms/link.json";
+  var GH_RAW = "https://raw.githubusercontent.com/trungtin32/bao-gia-tnp/HEAD/tms/link.json";
   var s = document.getElementById('s');
   function b64(x) { x = x.replace(/-/g, '+').replace(/_/g, '/'); while (x.length % 4) x += '='; var r = atob(x), u = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) u[i] = r.charCodeAt(i); return u; }
+  function wait(p, ms) { return Promise.race([p, new Promise(function (_, no) { setTimeout(function () { no(new Error('hết giờ')); }, ms); })]); }
+  async function fromNtfy() {
+    var res = await fetch('https://ntfy.sh/' + TOPIC + '/json?poll=1&since=12h', { cache: 'no-store' });
+    var out = [], lines = (await res.text()).trim().split('\n');
+    for (var i = 0; i < lines.length; i++) { try { var m = JSON.parse(lines[i]); if (m.event === 'message') out.push(JSON.parse(m.message)); } catch (e) {} }
+    return out;
+  }
+  async function fromGithub() {
+    try { var r = await fetch(GH_API, { cache: 'no-store', headers: { Accept: 'application/vnd.github.raw+json' } }); if (r.ok) return [JSON.parse(await r.text())]; } catch (e) {}
+    var r2 = await fetch(GH_RAW + '?t=' + Date.now(), { cache: 'no-store' });
+    return [JSON.parse(await r2.text())];
+  }
   try {
     var key = await crypto.subtle.importKey('jwk', KEY, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
-    var res = await fetch('https://ntfy.sh/' + TOPIC + '/json?poll=1&since=12h', { cache: 'no-store' });
-    var lines = (await res.text()).trim().split('\n'), best = null;
-    for (var i = 0; i < lines.length; i++) {
-      try {
-        var m = JSON.parse(lines[i]); if (m.event !== 'message') continue;
-        var d = JSON.parse(m.message);
-        if (!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(d.u)) continue;
-        var ok = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, b64(d.s), new TextEncoder().encode(d.u));
-        if (ok && (!best || d.t > best.t)) best = d;
-      } catch (e) { /* bỏ qua tin không hợp lệ */ }
+    var got = await Promise.allSettled([wait(fromNtfy(), 8000), wait(fromGithub(), 8000)]);
+    var best = null;
+    for (var g = 0; g < got.length; g++) {
+      if (got[g].status !== 'fulfilled') continue;
+      for (var i = 0; i < got[g].value.length; i++) {
+        var d = got[g].value[i];
+        try {
+          if (!d || !/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(d.u)) continue;
+          var ok = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, b64(d.s), new TextEncoder().encode(d.u));
+          if (ok && (!best || d.t > best.t)) best = d;
+        } catch (e) { /* bỏ qua tin không hợp lệ */ }
+      }
     }
     if (best) {
       document.getElementById('a').innerHTML = '<a href="' + best.u + '">Bấm vào đây nếu không tự chuyển</a>';
